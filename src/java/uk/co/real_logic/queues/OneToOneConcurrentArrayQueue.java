@@ -75,10 +75,10 @@ implements Queue<E>
             return null;
         }
 
-        final E element = removeSequence(currentHead);
+        final E e = removeSequence(currentHead);
         head = currentHead + 1;
 
-        return element;
+        return e;
     }
 
     public E remove()
@@ -159,7 +159,7 @@ implements Queue<E>
 
     public boolean containsAll(final Collection<?> c)
     {
-        for (Object o : c)
+        for (final Object o : c)
         {
             if (!contains(o))
             {
@@ -172,9 +172,9 @@ implements Queue<E>
 
     public boolean addAll(final Collection<? extends E> c)
     {
-        for (E o : c)
+        for (final E e : c)
         {
-            add(o);
+            add(e);
         }
 
         return true;
@@ -202,11 +202,11 @@ implements Queue<E>
 
     private E removeSequence(final long sequence)
     {
-        final int removeIndex = (int)(sequence % buffer.length);
-        final E element = buffer[removeIndex];
-        buffer[removeIndex] = null;
+        final int index = (int)(sequence % buffer.length);
+        final E e = buffer[index];
+        buffer[index] = null;
 
-        return element;
+        return e;
     }
 }
 

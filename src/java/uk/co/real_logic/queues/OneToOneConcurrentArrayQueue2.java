@@ -82,10 +82,10 @@ public final class OneToOneConcurrentArrayQueue2<E>
              return null;
         }
 
-        final E element = removeSequence(currentHead);
+        final E e = removeSequence(currentHead);
         head.lazySet(currentHead + 1);
 
-        return element;
+        return e;
     }
 
     public E remove()
@@ -166,7 +166,7 @@ public final class OneToOneConcurrentArrayQueue2<E>
 
     public boolean containsAll(final Collection<?> c)
     {
-        for (Object o : c)
+        for (final Object o : c)
         {
             if (!contains(o))
             {
@@ -179,9 +179,9 @@ public final class OneToOneConcurrentArrayQueue2<E>
 
     public boolean addAll(final Collection<? extends E> c)
     {
-        for (E o : c)
+        for (final E e : c)
         {
-            add(o);
+            add(e);
         }
 
         return true;
@@ -209,11 +209,11 @@ public final class OneToOneConcurrentArrayQueue2<E>
 
     private E removeSequence(final long sequence)
     {
-        final int removeIndex = (int)sequence & mask;
-        final E element = buffer[removeIndex];
-        buffer[removeIndex] = null;
+        final int index = (int)sequence & mask;
+        final E e = buffer[index];
+        buffer[index] = null;
 
-        return element;
+        return e;
     }
 }
 
