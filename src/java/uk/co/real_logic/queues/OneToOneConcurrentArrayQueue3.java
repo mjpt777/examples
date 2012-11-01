@@ -98,7 +98,9 @@ public final class OneToOneConcurrentArrayQueue3<E>
             }
         }
 
-        final E e = removeSequence(currentHead);
+        final int index = (int)currentHead & mask;
+        final E e = buffer[index];
+        buffer[index] = null;
         head.lazySet(currentHead + 1);
 
         return e;
@@ -221,15 +223,6 @@ public final class OneToOneConcurrentArrayQueue3<E>
             value = poll();
         }
         while (null != value);
-    }
-
-    private E removeSequence(final long sequence)
-    {
-        final int index = (int)sequence & mask;
-        final E e = buffer[index];
-        buffer[index] = null;
-
-        return e;
     }
 }
 

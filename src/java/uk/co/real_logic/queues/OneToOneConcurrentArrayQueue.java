@@ -22,7 +22,7 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 
 public final class OneToOneConcurrentArrayQueue<E>
-implements Queue<E>
+    implements Queue<E>
 {
     private final E[] buffer;
 
@@ -73,7 +73,9 @@ implements Queue<E>
             return null;
         }
 
-        final E e = removeSequence(currentHead);
+        final int index = (int)(currentHead % buffer.length);
+        final E e = buffer[index];
+        buffer[index] = null;
         head = currentHead + 1;
 
         return e;
@@ -196,15 +198,6 @@ implements Queue<E>
             value = poll();
         }
         while (null != value);
-    }
-
-    private E removeSequence(final long sequence)
-    {
-        final int index = (int)(sequence % buffer.length);
-        final E e = buffer[index];
-        buffer[index] = null;
-
-        return e;
     }
 }
 

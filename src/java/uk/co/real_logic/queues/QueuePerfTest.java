@@ -71,7 +71,7 @@ public class QueuePerfTest
 
         final long duration = System.nanoTime() - start;
         final long ops = (REPETITIONS * 1000L * 1000L * 1000L) / duration;
-        System.out.format("%d - op/sec=%,d - %s result=%d\n",
+        System.out.format("%d - ops/sec=%,d - %s result=%d\n",
                           Integer.valueOf(runNumber), Long.valueOf(ops),
                           queue.getClass().getSimpleName(), result);
     }
