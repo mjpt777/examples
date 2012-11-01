@@ -24,7 +24,6 @@ import java.util.Queue;
 public final class OneToOneConcurrentArrayQueue<E>
 implements Queue<E>
 {
-    private final int capacity;
     private final E[] buffer;
 
     private volatile long tail = 0;
@@ -33,8 +32,7 @@ implements Queue<E>
     @SuppressWarnings("unchecked")
     public OneToOneConcurrentArrayQueue(final int capacity)
     {
-        this.capacity = capacity;
-        buffer = (E[])new Object[this.capacity];
+        buffer = (E[])new Object[capacity];
     }
 
     public boolean add(final E e)
@@ -55,7 +53,7 @@ implements Queue<E>
         }
 
         final long currentTail = tail;
-        final long wrapPoint = currentTail - capacity;
+        final long wrapPoint = currentTail - buffer.length;
         if (head <= wrapPoint)
         {
             return false;
