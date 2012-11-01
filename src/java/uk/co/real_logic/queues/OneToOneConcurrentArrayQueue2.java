@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class OneToOneConcurrentArrayQueue2<E>
     implements Queue<E>
 {
-    private final int capacity;
     private final int mask;
     private final E[] buffer;
 
@@ -32,11 +31,11 @@ public final class OneToOneConcurrentArrayQueue2<E>
     private final AtomicLong head = new AtomicLong(0);
 
     @SuppressWarnings("unchecked")
-    public OneToOneConcurrentArrayQueue2(final int capacity)
+    public OneToOneConcurrentArrayQueue2(int capacity)
     {
-        this.capacity = findNextPositivePowerOfTwo(capacity);
-        mask = this.capacity - 1;
-        buffer = (E[])new Object[this.capacity];
+        capacity = findNextPositivePowerOfTwo(capacity);
+        mask = capacity - 1;
+        buffer = (E[])new Object[capacity];
     }
 
     public static int findNextPositivePowerOfTwo(final int value)
@@ -62,7 +61,7 @@ public final class OneToOneConcurrentArrayQueue2<E>
         }
 
         final long currentTail = tail.get();
-        final long wrapPoint = currentTail - capacity;
+        final long wrapPoint = currentTail - buffer.length;
         if (head.get() <= wrapPoint)
         {
             return false;
