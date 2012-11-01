@@ -19,7 +19,7 @@ import java.util.Queue;
 
 public class QueuePerfTest
 {
-    public static final int QUEUE_CAPACITY = 64 * 1024 * 1024;
+    public static final int QUEUE_CAPACITY = 32 * 1024;
     public static final int REPETITIONS = 50 * 1000 * 1000;
     public static final Integer TEST_VALUE = Integer.valueOf(777);
 
