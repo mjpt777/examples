@@ -20,25 +20,38 @@ import java.util.Queue;
 public class QueuePerfTest
 {
     public static final int QUEUE_CAPACITY = 64 * 1024 * 1024;
-    public static final int REPETITIONS = 100 * 1000 * 1000;
+    public static final int REPETITIONS = 50 * 1000 * 1000;
     public static final Integer TEST_VALUE = Integer.valueOf(777);
 
     public static void main(final String[] args) throws Exception
     {
+        final Queue<Integer> queue = createQueue(args[0]);
+
         for (int i = 0; i < 5; i++)
         {
-            performanceRun(i);
+            System.gc();
+            performanceRun(i, queue);
         }
     }
 
-    private static void performanceRun(final int runNumber) throws Exception
+    private static Queue<Integer> createQueue(final String option)
     {
-        //final Queue<Integer> queue = new java.util.concurrent.ConcurrentLinkedQueue<Integer>();
-        //final Queue<Integer> queue = new java.util.concurrent.LinkedBlockingQueue<Integer>(QUEUE_CAPACITY);
-        //final Queue<Integer> queue = new java.util.concurrent.ArrayBlockingQueue<Integer>(QUEUE_CAPACITY);
-        //final Queue<Integer> queue = new java.util.concurrent.LinkedTransferQueue<Integer>();
-        final Queue<Integer> queue = new OneToOneConcurrentArrayQueue3<Integer>(QUEUE_CAPACITY);
+        switch (Integer.parseInt(option))
+        {
+            case 1: return new OneToOneConcurrentArrayQueue<Integer>(QUEUE_CAPACITY);
+            case 2: return new OneToOneConcurrentArrayQueue2<Integer>(QUEUE_CAPACITY);
+            case 3: return new OneToOneConcurrentArrayQueue3<Integer>(QUEUE_CAPACITY);
+            case 4: return new java.util.concurrent.ArrayBlockingQueue<Integer>(QUEUE_CAPACITY);
+            case 5: return new java.util.concurrent.LinkedBlockingQueue<Integer>(QUEUE_CAPACITY);
+            case 6: return new java.util.concurrent.ConcurrentLinkedQueue<Integer>();
+            case 7: return new java.util.concurrent.LinkedTransferQueue<Integer>();
 
+            default: throw new IllegalArgumentException("Invalid option: " + option);
+        }
+    }
+
+    private static void performanceRun(final int runNumber, final Queue<Integer> queue) throws Exception
+    {
         final long start = System.nanoTime();
         final Thread thread = new Thread(new Producer(queue));
         thread.start();
