@@ -133,7 +133,7 @@ public final class OneToOneConcurrentArrayQueue2<E>
             return false;
         }
 
-        for (long i = head.get(), limit = tail.get() + 1; i < limit; i++)
+        for (long i = head.get(), limit = tail.get(); i < limit; i++)
         {
             final E e = buffer[(int)i & mask];
             if (o.equals(e))

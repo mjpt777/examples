@@ -15,7 +15,6 @@
  */
 package uk.co.real_logic.queues;
 
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -125,7 +124,7 @@ public final class OneToOneConcurrentArrayQueue<E>
             return false;
         }
 
-        for (long i = head, limit = tail + 1; i < limit; i++)
+        for (long i = head, limit = tail; i < limit; i++)
         {
             final E e = buffer[(int)(i % buffer.length)];
             if (o.equals(e))
