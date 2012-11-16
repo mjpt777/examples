@@ -27,7 +27,7 @@ import java.util.NoSuchElementException;
  * <p>
  *      A JVM can optimise the implementation to give a compact contiguous layout to facilitate stride based memory access.
  * </p>
- * @param <E> complex type occupying each element.
+ * @param <E> structured type occupying each element.
  */
 public class StructuredArray<E> implements Iterable<E>
 {
