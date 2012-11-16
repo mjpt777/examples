@@ -22,33 +22,33 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
-public class ComplexArrayTest
+public class StructuredArrayTest
 {
     @Test
     public void shouldConstructArrayOfGivenLength()
     {
         final long length = 7;
-        final ComplexArray<MockStructure> complexArray = new ComplexArray<MockStructure>(length, MockStructure.class);
+        final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
-        assertThat(valueOf(complexArray.getLength()), is(valueOf(length)));
+        assertThat(valueOf(structuredArray.getLength()), is(valueOf(length)));
     }
 
     @Test
     public void shouldGetCorrectValueAtGivenIndex()
     {
         final long length = 11;
-        final ComplexArray<MockStructure> complexArray = new ComplexArray<MockStructure>(length, MockStructure.class);
+        final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
         for (long i = 0; i < length; i++)
         {
-            final MockStructure mockStructure = complexArray.get(i);
+            final MockStructure mockStructure = structuredArray.get(i);
             mockStructure.setIndex(i);
             mockStructure.setTestValue(i * 2);
         }
 
         for (long i = 0; i < length; i++)
         {
-            final MockStructure mockStructure = complexArray.get(i);
+            final MockStructure mockStructure = structuredArray.get(i);
 
             assertThat(valueOf(mockStructure.getIndex()), is(valueOf(i)));
             assertThat(valueOf(mockStructure.getTestValue()), is(valueOf(i * 2)));
@@ -59,17 +59,17 @@ public class ComplexArrayTest
     public void shouldIterateOverArray()
     {
         final long length = 11;
-        final ComplexArray<MockStructure> complexArray = new ComplexArray<MockStructure>(length, MockStructure.class);
+        final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
         for (long i = 0; i < length; i++)
         {
-            final MockStructure mockStructure = complexArray.get(i);
+            final MockStructure mockStructure = structuredArray.get(i);
             mockStructure.setIndex(i);
             mockStructure.setTestValue(i * 2);
         }
 
         int i = 0;
-        for (final MockStructure mockStructure : complexArray)
+        for (final MockStructure mockStructure : structuredArray)
         {
             assertThat(valueOf(mockStructure.getIndex()), is(valueOf(i)));
             assertThat(valueOf(mockStructure.getTestValue()), is(valueOf(i * 2)));
@@ -84,15 +84,15 @@ public class ComplexArrayTest
     {
         final long index = 7;
         final long length = 11;
-        final ComplexArray<MockStructure> complexArray = new ComplexArray<MockStructure>(length, MockStructure.class);
+        final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
         final MockStructure expectedValue = new MockStructure();
         expectedValue.setIndex(31);
         expectedValue.setTestValue(257);
 
-        complexArray.copyToArray(index, expectedValue);
+        structuredArray.copyToArray(index, expectedValue);
 
-        assertThat(complexArray.get(index), is(expectedValue));
+        assertThat(structuredArray.get(index), is(expectedValue));
     }
 
     @Test
@@ -100,14 +100,14 @@ public class ComplexArrayTest
     {
         final long index = 7;
         final long length = 11;
-        final ComplexArray<MockStructure> complexArray = new ComplexArray<MockStructure>(length, MockStructure.class);
+        final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
-        final MockStructure expectedValue = complexArray.get(index);
+        final MockStructure expectedValue = structuredArray.get(index);
         expectedValue.setIndex(31);
         expectedValue.setTestValue(257);
 
         final MockStructure testValue = new MockStructure();
-        complexArray.copyFromArray(index, testValue);
+        structuredArray.copyFromArray(index, testValue);
 
         assertThat(testValue, is(expectedValue));
     }
@@ -116,9 +116,9 @@ public class ComplexArrayTest
     public void shouldThrowOutOfBoundExceptionForAccessesOutOfBounds()
     {
         final long length = 11;
-        final ComplexArray<MockStructure> complexArray = new ComplexArray<MockStructure>(length, MockStructure.class);
+        final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
-        complexArray.get(length);
+        structuredArray.get(length);
     }
 
     @Test
@@ -126,13 +126,13 @@ public class ComplexArrayTest
     {
         final long index = 7;
         final long length = 11;
-        final ComplexArray<MockStructure> complexArray = new ComplexArray<MockStructure>(length, MockStructure.class);
+        final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
-        final MockStructure expectedValue = complexArray.get(index);
+        final MockStructure expectedValue = structuredArray.get(index);
         expectedValue.setIndex(31);
         expectedValue.setTestValue(257);
 
-        final MockStructure clone = complexArray.clone(index);
+        final MockStructure clone = structuredArray.clone(index);
 
         assertThat(clone, is(expectedValue));
         assertFalse("Clone must be a different instance", clone == expectedValue);

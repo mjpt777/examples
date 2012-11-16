@@ -21,14 +21,15 @@ import java.util.NoSuchElementException;
 
 /**
  * <p>
- *      An effective large array of complex types that behaves like an array of structures in the C language.
+ *      An array of structured types that behaves like an array of structures in the C language.
+ *      The length of the array is in the 64-bit range.
  * </p>
  * <p>
  *      A JVM can optimise the implementation to give a compact contiguous layout to facilitate stride based memory access.
  * </p>
  * @param <E> complex type occupying each element.
  */
-public class ComplexArray<E> implements Iterable<E>
+public class StructuredArray<E> implements Iterable<E>
 {
     private static final int PARTITION_POWER_OF_TWO = 30;
     private static final int MAX_PARTITION_SIZE = 1 << PARTITION_POWER_OF_TWO;
@@ -40,13 +41,13 @@ public class ComplexArray<E> implements Iterable<E>
     private final Class<E> componentClass;
 
     /**
-     * Create an array of complex types to be laid out like a contagious array of structures.
+     * Create an array of structured types to be laid out like a contagious array of structures.
      *
      * @param length of the array to create.
      * @param componentClass of each element in the array
      */
     @SuppressWarnings("unchecked")
-    public ComplexArray(final long length, final Class<E> componentClass)
+    public StructuredArray(final long length, final Class<E> componentClass)
     {
         if (length < 0)
         {
@@ -117,7 +118,7 @@ public class ComplexArray<E> implements Iterable<E>
     }
 
     /**
-     * Clone and element in the array making a new copy.
+     * Clone an element in the array making a new copy.
      *
      * @param index of the element to be cloned.
      * @return a copy of the indexed element.
