@@ -180,7 +180,6 @@ public class ComplexArrayTest
             return result;
         }
 
-        @Override
         public String toString()
         {
             return "MockStructure{" +
