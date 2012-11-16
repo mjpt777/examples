@@ -25,7 +25,8 @@ import java.util.NoSuchElementException;
  *      The length of the array is in the 64-bit range.
  * </p>
  * <p>
- *      A JVM can optimise the implementation to give a compact contiguous layout to facilitate stride based memory access.
+ *      A JVM can optimise the implementation to provide a compact contiguous layout
+ *      that facilitates consistent stride based memory access.
  * </p>
  * @param <E> structured type occupying each element.
  */
@@ -41,7 +42,7 @@ public class StructuredArray<E> implements Iterable<E>
     private final Class<E> componentClass;
 
     /**
-     * Create an array of structured types to be laid out like a contagious array of structures.
+     * Create an array of types to be laid out like a contagious array of structures.
      *
      * @param length of the array to create.
      * @param componentClass of each element in the array
