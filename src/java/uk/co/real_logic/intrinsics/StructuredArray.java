@@ -22,7 +22,7 @@ import java.util.NoSuchElementException;
 /**
  * <p>
  *      An array of structured types that behaves like an array of structures in the C language.
- *      The length of the array is in the 64-bit range.
+ *      The length of the array is a signed 64-bit range.
  * </p>
  * <p>
  *      A JVM can optimise the implementation to provide a compact contiguous layout
