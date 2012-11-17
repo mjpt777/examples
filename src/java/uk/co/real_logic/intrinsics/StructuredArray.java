@@ -221,11 +221,17 @@ public class StructuredArray<E> implements Iterable<E>, Cloneable
     {
         private long cursor = 0;
 
+        /**
+         * {@inheritDoc}
+         */
         public boolean hasNext()
         {
             return cursor < length;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         public E next()
         {
             if (cursor >= length)
@@ -236,11 +242,19 @@ public class StructuredArray<E> implements Iterable<E>, Cloneable
             return get(cursor++);
         }
 
+        /**
+         * Remove operations are not supported on {@link StructuredArray}s.
+         *
+         * @throws {@link UnsupportedOperationException} if called.
+         */
         public void remove()
         {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * Will reset to the beginning of the collection enabling reuse of the iterator.
+         */
         public void reset()
         {
             cursor = 0;
