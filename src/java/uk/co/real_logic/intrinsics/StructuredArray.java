@@ -253,7 +253,7 @@ public class StructuredArray<E> implements Iterable<E>, Cloneable
         }
 
         /**
-         * Will reset to the beginning of the collection enabling reuse of the iterator.
+         * Reset to the beginning of the collection enabling reuse of the iterator.
          */
         public void reset()
         {
