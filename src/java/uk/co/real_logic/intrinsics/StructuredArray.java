@@ -42,7 +42,7 @@ public class StructuredArray<E> implements Iterable<E>, Cloneable
     private final Class<E> componentClass;
 
     /**
-     * Create an array of types to be laid out like a contagious array of structures.
+     * Create an array of types to be laid out like a contiguous array of structures.
      *
      * @param length of the array to create.
      * @param componentClass of each element in the array
