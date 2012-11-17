@@ -188,7 +188,7 @@ public class StructuredArray<E> implements Iterable<E>, Cloneable
         if (source.getClass() != destination.getClass())
         {
             final String msg =
-                String.format("Only objects of the same class can be copied %s != %s",
+                String.format("Only objects of the same class can be copied: %s != %s",
                               source.getClass(), destination.getClass());
             throw new IllegalArgumentException(msg);
         }

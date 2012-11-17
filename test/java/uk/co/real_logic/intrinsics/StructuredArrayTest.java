@@ -149,6 +149,20 @@ public class StructuredArrayTest
         assertThat(destinationValue, is(expectedValue));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotAllowCopyOfDifferentTypes()
+    {
+        final long length = 11;
+        final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
+
+        final MockStructure extendedStructure = new MockStructure()
+        {
+            public String someNewField = "Some value that would not be copied";
+        };
+
+        structuredArray.shallowCopy(extendedStructure, length - 1);
+    }
+
     @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void shouldThrowOutOfBoundExceptionForAccessesOutOfBounds()
     {
