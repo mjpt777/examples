@@ -19,8 +19,8 @@ import org.junit.Test;
 
 import static java.lang.Long.valueOf;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class StructuredArrayTest
 {
@@ -31,6 +31,7 @@ public class StructuredArrayTest
         final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
         assertThat(valueOf(structuredArray.getLength()), is(valueOf(length)));
+        assertTrue(structuredArray.getComponentClass() == MockStructure.class);
     }
 
     @Test
@@ -80,6 +81,42 @@ public class StructuredArrayTest
     }
 
     @Test
+    public void shouldIterateOverArrayAndResetAgain()
+    {
+        final long length = 11;
+        final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
+
+        for (long i = 0; i < length; i++)
+        {
+            final MockStructure mockStructure = structuredArray.get(i);
+            mockStructure.setIndex(i);
+            mockStructure.setTestValue(i * 2);
+        }
+
+        int i = 0;
+        final StructuredArray<MockStructure>.StructureIterator iter = structuredArray.iterator();
+        while (iter.hasNext())
+        {
+            final MockStructure mockStructure = iter.next();
+            assertThat(valueOf(mockStructure.getIndex()), is(valueOf(i)));
+            assertThat(valueOf(mockStructure.getTestValue()), is(valueOf(i * 2)));
+            i++;
+        }
+
+        iter.reset();
+        i = 0;
+        while (iter.hasNext())
+        {
+            final MockStructure mockStructure = iter.next();
+            assertThat(valueOf(mockStructure.getIndex()), is(valueOf(i)));
+            assertThat(valueOf(mockStructure.getTestValue()), is(valueOf(i * 2)));
+            i++;
+        }
+
+        assertThat(valueOf(i), is(valueOf(length)));
+    }
+
+    @Test
     public void shouldCopyToArrayElement()
     {
         final long index = 7;
@@ -90,7 +127,7 @@ public class StructuredArrayTest
         expectedValue.setIndex(31);
         expectedValue.setTestValue(257);
 
-        structuredArray.copyToArray(index, expectedValue);
+        structuredArray.shallowCopy(expectedValue, index);
 
         assertThat(structuredArray.get(index), is(expectedValue));
     }
@@ -106,10 +143,10 @@ public class StructuredArrayTest
         expectedValue.setIndex(31);
         expectedValue.setTestValue(257);
 
-        final MockStructure testValue = new MockStructure();
-        structuredArray.copyFromArray(index, testValue);
+        final MockStructure destinationValue = new MockStructure();
+        structuredArray.shallowCopy(index, destinationValue);
 
-        assertThat(testValue, is(expectedValue));
+        assertThat(destinationValue, is(expectedValue));
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
@@ -119,23 +156,6 @@ public class StructuredArrayTest
         final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
         structuredArray.get(length);
-    }
-
-    @Test
-    public void shouldCloneElementForGivenIndex()
-    {
-        final long index = 7;
-        final long length = 11;
-        final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
-
-        final MockStructure expectedValue = structuredArray.get(index);
-        expectedValue.setIndex(31);
-        expectedValue.setTestValue(257);
-
-        final MockStructure clone = structuredArray.clone(index);
-
-        assertThat(clone, is(expectedValue));
-        assertFalse("Clone must be a different instance", clone == expectedValue);
     }
 
     public static class MockStructure

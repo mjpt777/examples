@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
  * </p>
  * @param <E> structured type occupying each element.
  */
-public class StructuredArray<E> implements Iterable<E>
+public class StructuredArray<E> implements Iterable<E>, Cloneable
 {
     private static final int PARTITION_POWER_OF_TWO = 30;
     private static final int MAX_PARTITION_SIZE = 1 << PARTITION_POWER_OF_TWO;
@@ -95,6 +95,31 @@ public class StructuredArray<E> implements Iterable<E>
     }
 
     /**
+     * Performs a shallow {@link Object#clone()} operation on the array and its elements.
+     * The clone does not recursively follow down into element fields.
+     *
+     * @return a shallow clone of the array and elements.
+     */
+    public StructuredArray<E> clone()
+    {
+        final StructuredArray<E> clone = new StructuredArray<E>(length, componentClass);
+
+        for (int partitionIndex = 0, partitionsLimit = partitions.length;
+             partitionIndex < partitionsLimit; partitionIndex++)
+        {
+            final E[] partition = partitions[partitionIndex];
+            final E[] clonePartition = clone.partitions[partitionIndex];
+
+            for (int i = 0, limit = partition.length; i < limit; i++)
+            {
+                shallowCopy(partition[i], clonePartition[i]);
+            }
+        }
+
+        return clone;
+    }
+
+    /**
      * Get the length of the array by number of elements.
      *
      * @return the number of elements in the array.
@@ -102,6 +127,16 @@ public class StructuredArray<E> implements Iterable<E>
     public long getLength()
     {
         return length;
+    }
+
+    /**
+     * Get the {@link Class} of elements stored as components of the array.
+     *
+     * @return the {@link Class} of elements stored as components of the array.
+     */
+    public Class<E> getComponentClass()
+    {
+        return componentClass;
     }
 
     /**
@@ -119,60 +154,44 @@ public class StructuredArray<E> implements Iterable<E>
     }
 
     /**
-     * Clone an element in the array making a new copy.
+     * Shallow copy a source structure into an indexed element.
      *
-     * @param index of the element to be cloned.
-     * @return a copy of the indexed element.
-     */
-    public E clone(final long index)
-    {
-        try
-        {
-            final E clone = componentClass.newInstance();
-            copyFromArray(index, clone);
-
-            return clone;
-        }
-        catch (Exception ex)
-        {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    /**
-     * Shallow copy a structure into an indexed element.
-     *
-     * @param index of the element to be copied over.
      * @param source structure to copy over the indexed element.
+     * @param index of the element to be copied over.
      */
-    public void copyToArray(final long index, E source)
+    public void shallowCopy(E source, final long index)
     {
         final E destination = get(index);
         shallowCopy(source, destination);
     }
 
     /**
-     * Shallow copy a structure from an indexed element.
+     * Shallow an indexed element to a provided destination structure.
      *
      * @param index of the element to be copied.
      * @param destination structure into which the element should be copied.
      */
-    public void copyFromArray(final long index, E destination)
+    public void shallowCopy(final long index, E destination)
     {
         final E source = get(index);
         shallowCopy(source, destination);
     }
 
     /**
-     * {@inheritDoc}
+     * Shallow copy the fields from the source to the destination object.
+     * @param source object for the copy.
+     * @param destination object into which the source fields get copied.
+     * @throws IllegalArgumentException if the {@link Class} of each object is not identical.
      */
-    public Iterator<E> iterator()
+    public void shallowCopy(final E source, final E destination)
     {
-        return new ElementIterator();
-    }
+        if (source.getClass() != destination.getClass())
+        {
+            final String msg = String.format("Only objects of the same class can be copied %s != %s",
+                                             source.getClass(), destination.getClass());
+            throw new IllegalArgumentException(msg);
+        }
 
-    private void shallowCopy(final E source, final E destination)
-    {
         try
         {
             for (final Field field : fields)
@@ -186,7 +205,18 @@ public class StructuredArray<E> implements Iterable<E>
         }
     }
 
-    private class ElementIterator implements Iterator<E>
+    /**
+     * {@inheritDoc}
+     */
+    public StructureIterator iterator()
+    {
+        return new StructureIterator();
+    }
+
+    /**
+     * Specialised {@link Iterator} with the ability to {@link #reset()} so it can be reused.
+     */
+    public class StructureIterator implements Iterator<E>
     {
         private long cursor = 0;
 
@@ -208,6 +238,11 @@ public class StructuredArray<E> implements Iterable<E>
         public void remove()
         {
             throw new UnsupportedOperationException();
+        }
+
+        public void reset()
+        {
+            cursor = 0;
         }
     }
 }
