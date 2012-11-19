@@ -156,20 +156,20 @@ public class StructuredArray<E> implements Iterable<E>
 
         if (destinationOffset < sourceOffset)
         {
-            for (long sourceIndex = sourceOffset, destinationIndex = destinationOffset, limit = sourceOffset + count;
-                 sourceIndex < limit;
-                 sourceIndex++, destinationIndex++)
+            for (long srcIdx = sourceOffset, dstIdx = destinationOffset, limit = sourceOffset + count;
+                 srcIdx < limit;
+                 srcIdx++, dstIdx++)
             {
-                shallowCopy(source.get(sourceIndex), destination.get(destinationIndex), fields);
+                shallowCopy(source.get(srcIdx), destination.get(dstIdx), fields);
             }
         }
         else
         {
-            for (long sourceIndex = sourceOffset + count, destinationIndex = destinationOffset + count, limit = sourceOffset - 1;
-                 sourceIndex > limit;
-                 sourceIndex--, destinationIndex--)
+            for (long srcIdx = sourceOffset + count, dstIdx = destinationOffset + count, limit = sourceOffset - 1;
+                 srcIdx > limit;
+                 srcIdx--, dstIdx--)
             {
-                shallowCopy(source.get(sourceIndex), destination.get(destinationIndex), fields);
+                shallowCopy(source.get(srcIdx), destination.get(dstIdx), fields);
             }
         }
     }
