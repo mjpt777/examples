@@ -40,12 +40,7 @@ public class StructuredArrayTest
         final long length = 11;
         final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
-        for (long i = 0; i < length; i++)
-        {
-            final MockStructure mockStructure = structuredArray.get(i);
-            mockStructure.setIndex(i);
-            mockStructure.setTestValue(i * 2);
-        }
+        initValues(length, structuredArray);
 
         for (long i = 0; i < length; i++)
         {
@@ -62,12 +57,7 @@ public class StructuredArrayTest
         final long length = 11;
         final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
-        for (long i = 0; i < length; i++)
-        {
-            final MockStructure mockStructure = structuredArray.get(i);
-            mockStructure.setIndex(i);
-            mockStructure.setTestValue(i * 2);
-        }
+        initValues(length, structuredArray);
 
         int i = 0;
         for (final MockStructure mockStructure : structuredArray)
@@ -86,12 +76,7 @@ public class StructuredArrayTest
         final long length = 11;
         final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
-        for (long i = 0; i < length; i++)
-        {
-            final MockStructure mockStructure = structuredArray.get(i);
-            mockStructure.setIndex(i);
-            mockStructure.setTestValue(i * 2);
-        }
+        initValues(length, structuredArray);
 
         int i = 0;
         final StructuredArray<MockStructure>.StructureIterator iter = structuredArray.iterator();
@@ -117,50 +102,33 @@ public class StructuredArrayTest
     }
 
     @Test
-    public void shouldCopyToArrayElement()
+    public void shouldCopyRegionLeftInArray()
     {
-        final long index = 7;
         final long length = 11;
         final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
-        final MockStructure expectedValue = new MockStructure();
-        expectedValue.setIndex(31);
-        expectedValue.setTestValue(257);
+        initValues(length, structuredArray);
 
-        structuredArray.shallowCopy(expectedValue, index);
+        StructuredArray.shallowCopy(structuredArray, 4, structuredArray, 3, 2);
 
-        assertThat(structuredArray.get(index), is(expectedValue));
+        assertThat(valueOf(structuredArray.get(3).getIndex()), is(valueOf(4)));
+        assertThat(valueOf(structuredArray.get(4).getIndex()), is(valueOf(5)));
+        assertThat(valueOf(structuredArray.get(5).getIndex()), is(valueOf(5)));
     }
 
     @Test
-    public void shouldCopyFromArrayElement()
-    {
-        final long index = 7;
-        final long length = 11;
-        final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
-
-        final MockStructure expectedValue = structuredArray.get(index);
-        expectedValue.setIndex(31);
-        expectedValue.setTestValue(257);
-
-        final MockStructure destinationValue = new MockStructure();
-        structuredArray.shallowCopy(index, destinationValue);
-
-        assertThat(destinationValue, is(expectedValue));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldNotAllowCopyOfDifferentTypes()
+    public void shouldCopyRegionRightInArray()
     {
         final long length = 11;
         final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
-        final MockStructure extendedStructure = new MockStructure()
-        {
-            public String someNewField = "Some value that would not be copied";
-        };
+        initValues(length, structuredArray);
 
-        structuredArray.shallowCopy(extendedStructure, length - 1);
+        StructuredArray.shallowCopy(structuredArray, 5, structuredArray, 6, 2);
+
+        assertThat(valueOf(structuredArray.get(5).getIndex()), is(valueOf(5)));
+        assertThat(valueOf(structuredArray.get(6).getIndex()), is(valueOf(5)));
+        assertThat(valueOf(structuredArray.get(7).getIndex()), is(valueOf(6)));
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
@@ -170,6 +138,16 @@ public class StructuredArrayTest
         final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
         structuredArray.get(length);
+    }
+
+    private void initValues(final long length, final StructuredArray<MockStructure> structuredArray)
+    {
+        for (long i = 0; i < length; i++)
+        {
+            final MockStructure mockStructure = structuredArray.get(i);
+            mockStructure.setIndex(i);
+            mockStructure.setTestValue(i * 2);
+        }
     }
 
     public static class MockStructure

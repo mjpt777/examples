@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
  * </p>
  * @param <E> structured type occupying each element.
  */
-public class StructuredArray<E> implements Iterable<E>, Cloneable
+public class StructuredArray<E> implements Iterable<E>
 {
     private static final int PARTITION_POWER_OF_TWO = 30;
     private static final int MAX_PARTITION_SIZE = 1 << PARTITION_POWER_OF_TWO;
@@ -95,31 +95,6 @@ public class StructuredArray<E> implements Iterable<E>, Cloneable
     }
 
     /**
-     * Performs a shallow {@link Object#clone()} operation on the array and its elements.
-     * The clone does not recursively follow down into element fields.
-     *
-     * @return a shallow clone of the array and elements.
-     */
-    public StructuredArray<E> clone()
-    {
-        final StructuredArray<E> clone = new StructuredArray<E>(length, componentClass);
-
-        for (int partitionIndex = 0, partitionsLimit = partitions.length;
-             partitionIndex < partitionsLimit; partitionIndex++)
-        {
-            final E[] partition = partitions[partitionIndex];
-            final E[] clonePartition = clone.partitions[partitionIndex];
-
-            for (int i = 0, limit = partition.length; i < limit; i++)
-            {
-                shallowCopy(partition[i], clonePartition[i]);
-            }
-        }
-
-        return clone;
-    }
-
-    /**
      * Get the length of the array by number of elements.
      *
      * @return the number of elements in the array.
@@ -154,57 +129,48 @@ public class StructuredArray<E> implements Iterable<E>, Cloneable
     }
 
     /**
-     * Shallow copy a source structure into an indexed element.
+     * Shallow copy a region of structures from one array to the other.  If the same array is both the source
+     * and destination then the copy will happen as if a temporary intermediate array was used.
      *
-     * @param source structure to copy over the indexed element.
-     * @param index of the element to be copied over.
+     * @param source array to copy.
+     * @param sourceOffset offset index in source where the region begins.
+     * @param destination array into which the copy should occur.
+     * @param destinationOffset offset index in the destination where the region begins.
+     * @param count of structure elements to copy.
+     * @param <E> type of the structure being copied.
+     * @throws IllegalArgumentException if the {@link StructuredArray#getComponentClass()}s are not identical.
      */
-    public void shallowCopy(E source, final long index)
-    {
-        final E destination = get(index);
-        shallowCopy(source, destination);
-    }
-
-    /**
-     * Shallow an indexed element to a provided destination structure.
-     *
-     * @param index of the element to be copied.
-     * @param destination structure into which the element should be copied.
-     */
-    public void shallowCopy(final long index, E destination)
-    {
-        final E source = get(index);
-        shallowCopy(source, destination);
-    }
-
     public static <E> void shallowCopy(final StructuredArray<E> source, final long sourceOffset,
                                        final StructuredArray<E> destination, final long destinationOffset,
                                        final long count)
     {
-        if (source.componentClass != destination.getComponentClass())
+        if (source.componentClass != destination.componentClass)
         {
-            final String msg =
-                String.format("Only objects of the same class can be copied: %s != %s",
-                              source.getClass(), destination.getClass());
+            final String msg = String.format("Only objects of the same class can be copied: %s != %s",
+                                             source.getClass(), destination.getClass());
 
             throw new IllegalArgumentException(msg);
         }
 
+        final Field[] fields = source.fields;
 
-    }
-
-    private void shallowCopy(final E source, final E destination)
-    {
-        try
+        if (destinationOffset < sourceOffset)
         {
-            for (final Field field : fields)
+            for (long sourceIndex = sourceOffset, destinationIndex = destinationOffset, limit = sourceOffset + count;
+                 sourceIndex < limit;
+                 sourceIndex++, destinationIndex++)
             {
-                field.set(destination, field.get(source));
+                shallowCopy(source.get(sourceIndex), destination.get(destinationIndex), fields);
             }
         }
-        catch (final IllegalAccessException shouldNotHappen)
+        else
         {
-            throw new RuntimeException(shouldNotHappen);
+            for (long sourceIndex = sourceOffset + count, destinationIndex = destinationOffset + count, limit = sourceOffset - 1;
+                 sourceIndex > limit;
+                 sourceIndex--, destinationIndex--)
+            {
+                shallowCopy(source.get(sourceIndex), destination.get(destinationIndex), fields);
+            }
         }
     }
 
@@ -221,8 +187,8 @@ public class StructuredArray<E> implements Iterable<E>, Cloneable
      */
     public class StructureIterator implements Iterator<E>
     {
-        private long cursor = 0;
 
+        private long cursor = 0;
         /**
          * {@inheritDoc}
          */
@@ -260,6 +226,22 @@ public class StructuredArray<E> implements Iterable<E>, Cloneable
         public void reset()
         {
             cursor = 0;
+        }
+
+    }
+
+    private static void shallowCopy(final Object source, final Object destination, final Field[] fields)
+    {
+        try
+        {
+            for (final Field field : fields)
+            {
+                field.set(destination, field.get(source));
+            }
+        }
+        catch (final IllegalAccessException shouldNotHappen)
+        {
+            throw new RuntimeException(shouldNotHappen);
         }
     }
 }
