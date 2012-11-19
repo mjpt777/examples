@@ -154,20 +154,20 @@ public class StructuredArray<E> implements Iterable<E>
 
         final Field[] fields = src.fields;
 
-        if (dstOffset < srcOffset)
+        if (src == dst && (dstOffset >= srcOffset && srcOffset <= (dstOffset + count)))
         {
-            for (long srcIdx = srcOffset, dstIdx = dstOffset, limit = srcOffset + count;
-                 srcIdx < limit;
-                 srcIdx++, dstIdx++)
+            for (long srcIdx = srcOffset + count, dstIdx = dstOffset + count, limit = srcOffset - 1;
+                 srcIdx > limit;
+                 srcIdx--, dstIdx--)
             {
                 shallowCopy(src.get(srcIdx), dst.get(dstIdx), fields);
             }
         }
         else
         {
-            for (long srcIdx = srcOffset + count, dstIdx = dstOffset + count, limit = srcOffset - 1;
-                 srcIdx > limit;
-                 srcIdx--, dstIdx--)
+            for (long srcIdx = srcOffset, dstIdx = dstOffset, limit = srcOffset + count;
+                 srcIdx < limit;
+                 srcIdx++, dstIdx++)
             {
                 shallowCopy(src.get(srcIdx), dst.get(dstIdx), fields);
             }
