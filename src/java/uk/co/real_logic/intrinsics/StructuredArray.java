@@ -129,47 +129,47 @@ public class StructuredArray<E> implements Iterable<E>
     }
 
     /**
-     * Shallow copy a region of structures from one array to the other.  If the same array is both the source
-     * and destination then the copy will happen as if a temporary intermediate array was used.
+     * Shallow copy a region of structures from one array to the other.  If the same array is both the src
+     * and dst then the copy will happen as if a temporary intermediate array was used.
      *
-     * @param source array to copy.
-     * @param sourceOffset offset index in source where the region begins.
-     * @param destination array into which the copy should occur.
-     * @param destinationOffset offset index in the destination where the region begins.
+     * @param src array to copy.
+     * @param srcOffset offset index in src where the region begins.
+     * @param dst array into which the copy should occur.
+     * @param dstOffset offset index in the dst where the region begins.
      * @param count of structure elements to copy.
      * @param <E> type of the structure being copied.
-     * @throws IllegalArgumentException if the {@link StructuredArray#getComponentClass()}s are not identical.
+     * @throws ArrayStoreException if the {@link StructuredArray#getComponentClass()}s are not identical.
      */
-    public static <E> void shallowCopy(final StructuredArray<E> source, final long sourceOffset,
-                                       final StructuredArray<E> destination, final long destinationOffset,
+    public static <E> void shallowCopy(final StructuredArray<E> src, final long srcOffset,
+                                       final StructuredArray<E> dst, final long dstOffset,
                                        final long count)
     {
-        if (source.componentClass != destination.componentClass)
+        if (src.componentClass != dst.componentClass)
         {
             final String msg = String.format("Only objects of the same class can be copied: %s != %s",
-                                             source.getClass(), destination.getClass());
+                                             src.getClass(), dst.getClass());
 
-            throw new IllegalArgumentException(msg);
+            throw new ArrayStoreException(msg);
         }
 
-        final Field[] fields = source.fields;
+        final Field[] fields = src.fields;
 
-        if (destinationOffset < sourceOffset)
+        if (dstOffset < srcOffset)
         {
-            for (long srcIdx = sourceOffset, dstIdx = destinationOffset, limit = sourceOffset + count;
+            for (long srcIdx = srcOffset, dstIdx = dstOffset, limit = srcOffset + count;
                  srcIdx < limit;
                  srcIdx++, dstIdx++)
             {
-                shallowCopy(source.get(srcIdx), destination.get(dstIdx), fields);
+                shallowCopy(src.get(srcIdx), dst.get(dstIdx), fields);
             }
         }
         else
         {
-            for (long srcIdx = sourceOffset + count, dstIdx = destinationOffset + count, limit = sourceOffset - 1;
+            for (long srcIdx = srcOffset + count, dstIdx = dstOffset + count, limit = srcOffset - 1;
                  srcIdx > limit;
                  srcIdx--, dstIdx--)
             {
-                shallowCopy(source.get(srcIdx), destination.get(dstIdx), fields);
+                shallowCopy(src.get(srcIdx), dst.get(dstIdx), fields);
             }
         }
     }
