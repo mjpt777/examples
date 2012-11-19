@@ -154,7 +154,7 @@ public class StructuredArray<E> implements Iterable<E>
 
         final Field[] fields = src.fields;
 
-        if (src == dst && (dstOffset >= srcOffset && srcOffset <= (dstOffset + count)))
+        if (dst == src && (dstOffset >= srcOffset && (dstOffset + count) >= srcOffset))
         {
             for (long srcIdx = srcOffset + count, dstIdx = dstOffset + count, limit = srcOffset - 1;
                  srcIdx > limit;
