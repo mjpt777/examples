@@ -213,7 +213,7 @@ public class StructuredArray<E> implements Iterable<E>
         /**
          * Remove operations are not supported on {@link StructuredArray}s.
          *
-         * @throws {@link UnsupportedOperationException} if called.
+         * @throws UnsupportedOperationException if called.
          */
         public void remove()
         {
