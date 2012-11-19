@@ -177,22 +177,24 @@ public class StructuredArray<E> implements Iterable<E>, Cloneable
         shallowCopy(source, destination);
     }
 
-    /**
-     * Shallow copy the fields from the source to the destination object.
-     * @param source object for the copy.
-     * @param destination object into which the source fields get copied.
-     * @throws IllegalArgumentException if the {@link Class} of each object is not identical.
-     */
-    public void shallowCopy(final E source, final E destination)
+    public static <E> void shallowCopy(final StructuredArray<E> source, final long sourceOffset,
+                                       final StructuredArray<E> destination, final long destinationOffset,
+                                       final long count)
     {
-        if (source.getClass() != destination.getClass())
+        if (source.componentClass != destination.getComponentClass())
         {
             final String msg =
                 String.format("Only objects of the same class can be copied: %s != %s",
                               source.getClass(), destination.getClass());
+
             throw new IllegalArgumentException(msg);
         }
 
+
+    }
+
+    private void shallowCopy(final E source, final E destination)
+    {
         try
         {
             for (final Field field : fields)
