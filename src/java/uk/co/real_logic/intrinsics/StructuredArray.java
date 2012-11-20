@@ -68,10 +68,8 @@ public class StructuredArray<E> implements Iterable<E>
      * @throws IllegalArgumentException if the constructor arguments do not match the signature.
      */
     @SuppressWarnings("unchecked")
-    public StructuredArray(final long length,
-                           final Class<E> componentClass,
-                           final Class[] initArgTypes,
-                           final Object... initArgs)
+    public StructuredArray(final long length, final Class<E> componentClass,
+                           final Class[] initArgTypes, final Object... initArgs)
     {
         if (length < 0)
         {
