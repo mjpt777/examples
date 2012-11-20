@@ -78,7 +78,6 @@ public class StructuredArray<E> implements Iterable<E>
         this.fields = fields;
         this.hasFinalFields = containsFinalQualifiedFields(fields);
 
-
         final int numFullPartitions = (int)(length / MAX_PARTITION_SIZE);
         final int lastPartitionSize = (int)(length % MAX_PARTITION_SIZE);
 
