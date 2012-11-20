@@ -24,14 +24,12 @@ import static org.junit.Assert.assertTrue;
 
 public class StructuredArrayTest
 {
-    private final Factory<MockStructure> factory = new MockStructureFactory(-1, Integer.MIN_VALUE);
-
     @Test
     public void shouldConstructArrayOfGivenLength()
     {
         final long length = 7;
         final StructuredArray<MockStructure> structuredArray =
-            new StructuredArray<MockStructure>(length, MockStructure.class, factory);
+            StructuredArray.newInstance(length, MockStructure.class);
 
         assertThat(valueOf(structuredArray.getLength()), is(valueOf(length)));
         assertTrue(structuredArray.getComponentClass() == MockStructure.class);
@@ -40,12 +38,12 @@ public class StructuredArrayTest
     @Test
     public void shouldConstructArrayOfGivenLengthAndInitValues()
     {
+        final Class[] initArgTypes = {long.class, long.class};
         final long expectedIndex = 4L;
         final long expectedValue = 777L;
         final long length = 7;
-        final Factory<MockStructure> factory = new MockStructureFactory(expectedIndex, expectedValue);
-        final StructuredArray<MockStructure> structuredArray
-            = new StructuredArray<MockStructure>(length, MockStructure.class, factory);
+        final StructuredArray<MockStructure> structuredArray =
+            StructuredArray.newInstance(length, MockStructure.class, initArgTypes, expectedIndex, expectedValue);
 
         assertThat(valueOf(structuredArray.getLength()), is(valueOf(length)));
         assertTrue(structuredArray.getComponentClass() == MockStructure.class);
@@ -62,7 +60,7 @@ public class StructuredArrayTest
     {
         final long length = 11;
         final StructuredArray<MockStructure> structuredArray =
-            new StructuredArray<MockStructure>(length, MockStructure.class, factory);
+            StructuredArray.newInstance(length, MockStructure.class);
 
         initValues(length, structuredArray);
 
@@ -80,7 +78,7 @@ public class StructuredArrayTest
     {
         final long length = 11;
         final StructuredArray<MockStructure> structuredArray =
-            new StructuredArray<MockStructure>(length, MockStructure.class, factory);
+            StructuredArray.newInstance(length, MockStructure.class);
 
         initValues(length, structuredArray);
 
@@ -100,7 +98,7 @@ public class StructuredArrayTest
     {
         final long length = 11;
         final StructuredArray<MockStructure> structuredArray =
-            new StructuredArray<MockStructure>(length, MockStructure.class, factory);
+            StructuredArray.newInstance(length, MockStructure.class);
 
         initValues(length, structuredArray);
 
@@ -132,7 +130,7 @@ public class StructuredArrayTest
     {
         final long length = 11;
         final StructuredArray<MockStructure> structuredArray =
-            new StructuredArray<MockStructure>(length, MockStructure.class, factory);
+            StructuredArray.newInstance(length, MockStructure.class);
 
         initValues(length, structuredArray);
 
@@ -148,7 +146,7 @@ public class StructuredArrayTest
     {
         final long length = 11;
         final StructuredArray<MockStructure> structuredArray =
-            new StructuredArray<MockStructure>(length, MockStructure.class, factory);
+            StructuredArray.newInstance(length, MockStructure.class);
 
         initValues(length, structuredArray);
 
@@ -164,47 +162,20 @@ public class StructuredArrayTest
     {
         final long length = 11;
         final StructuredArray<MockStructure> structuredArray =
-            new StructuredArray<MockStructure>(length, MockStructure.class, factory);
+            StructuredArray.newInstance(length, MockStructure.class);
 
         structuredArray.get(length);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionWhenFinalFieldWouldBeCopied()
     {
         final long length = 11;
-        final Factory<MockStructureWithFinalField> factory = new MockStructureWithFinalFieldFactory();
-
-        final StructuredArray<MockStructureWithFinalField> structuredArray
-            = new StructuredArray<MockStructureWithFinalField>(length, MockStructureWithFinalField.class, factory);
+        final StructuredArray<MockStructureWithFinalField> structuredArray =
+            StructuredArray.newInstance(length, MockStructureWithFinalField.class);
 
         StructuredArray.shallowCopy(structuredArray, 1, structuredArray, 3, 1, false);
     }
-
-    @Test
-    public void shouldAllowNestingOfStructuredArrays()
-    {
-        final long length = 11;
-        final Factory<StructuredArray<MockStructure>> outerFactory = new Factory<StructuredArray<MockStructure>>()
-            {
-                public StructuredArray<MockStructure> newInstance()
-                {
-                    return new StructuredArray<MockStructure>(length, MockStructure.class, factory);
-                }
-            };
-
-        final StructuredArray<StructuredArray<MockStructure>> structuredArray
-            = new StructuredArray(length, StructuredArray.class, outerFactory);
-
-        final long expectedValue = 777;
-        structuredArray.get(3).get(5).setTestValue(expectedValue);
-
-        assertThat(valueOf(structuredArray.get(3).get(5).getTestValue()), is(valueOf(expectedValue)));
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    // End of Tests
-    ///////////////////////////////////////////////////////////////////////////
 
     private void initValues(final long length, final StructuredArray<MockStructure> structuredArray)
     {
@@ -216,27 +187,14 @@ public class StructuredArrayTest
         }
     }
 
-    public static class MockStructureFactory implements Factory<MockStructure>
-    {
-        private final long index;
-        private final long testValue;
-
-        public MockStructureFactory(final long index, final long testValue)
-        {
-            this.index = index;
-            this.testValue = testValue;
-        }
-
-        public MockStructure newInstance()
-        {
-            return new MockStructure(index, testValue);
-        }
-    }
-
     public static class MockStructure
     {
-        private long index;
-        private long testValue;
+        private long index = -1;
+        private long testValue = Long.MIN_VALUE;
+
+        public MockStructure()
+        {
+        }
 
         public MockStructure(final long index, final long testValue)
         {
@@ -284,21 +242,14 @@ public class StructuredArrayTest
         public String toString()
         {
             return "MockStructure{" +
-                "index=" + index +
-                ", testValue=" + testValue +
-                '}';
+            "index=" + index +
+            ", testValue=" + testValue +
+            '}';
         }
     }
 
-    public static class MockStructureWithFinalFieldFactory implements Factory<MockStructureWithFinalField>
-    {
-        public MockStructureWithFinalField newInstance()
-        {
-            return new MockStructureWithFinalField();
-        }
-    }
     private static class MockStructureWithFinalField
     {
-        public final int value = 7;
+        private final int value = 888;
     }
 }

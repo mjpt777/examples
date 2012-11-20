@@ -28,13 +28,16 @@ import static java.lang.reflect.Modifier.*;
  *      The length of the array is a signed 64-bit value.
  * </p>
  * <p>
- *      A JVM can optimise the implementation via intrinsics to provide a compact contiguous layout
+ *      A JVM can optimise the implementation to provide a compact contiguous layout
  *      that facilitates consistent stride based memory access.
  * </p>
  * @param <E> structured type occupying each element.
  */
 public class StructuredArray<E> implements Iterable<E>
 {
+    private static final Class[] EMPTY_INIT_ARG_TYPES = new Class[0];
+    private static final Object[] EMPTY_INIT_ARGS = new Object[0];
+
     private static final int PARTITION_POWER_OF_TWO = 30;
     private static final int MAX_PARTITION_SIZE = 1 << PARTITION_POWER_OF_TWO;
     private static final int MASK = MAX_PARTITION_SIZE  - 1;
@@ -47,16 +50,40 @@ public class StructuredArray<E> implements Iterable<E>
     private final E[][] partitions;
 
     /**
+     * Create an array of types to be laid out like a contiguous array of structures.
+     *
+     * @param length of the array to create.
+     * @param componentClass of each element in the array
+     */
+    public static <E> StructuredArray<E> newInstance(final long length, final Class<E> componentClass)
+    {
+        return new StructuredArray<E>(length, componentClass);
+    }
+
+    /**
      * Create an array of types to be laid out like a contiguous array of structures and provide
      * a list of arguments to be passed to a constructor for each element.
      *
      * @param length of the array to create.
      * @param componentClass of each element in the array
-     * @param factory for creating new element instances.
+     * @param initArgTypes for selecting the constructor to call for initialising each structure object.
+     * @param initArgs to be passed to a constructor for initialising each structure object.
      * @throws IllegalArgumentException if the constructor arguments do not match the signature.
      */
+    public static <E> StructuredArray<E> newInstance(final long length, final Class<E> componentClass,
+                                                  final Class[] initArgTypes, final Object... initArgs)
+    {
+        return new StructuredArray<E>(length, componentClass, initArgTypes, initArgs);
+    }
+
+    private StructuredArray(final long length, final Class<E> componentClass)
+    {
+        this(length, componentClass, EMPTY_INIT_ARG_TYPES, EMPTY_INIT_ARGS);
+    }
+
     @SuppressWarnings("unchecked")
-    public StructuredArray(final long length, final Class<E> componentClass, final Factory<E> factory)
+    private StructuredArray(final long length, final Class<E> componentClass,
+                            final Class[] initArgTypes, final Object... initArgs)
     {
         if (length < 0)
         {
@@ -67,16 +94,25 @@ public class StructuredArray<E> implements Iterable<E>
         {
             throw new NullPointerException("componentClass cannot be null");
         }
+
+        if (initArgTypes.length != initArgs.length)
+        {
+            throw new IllegalArgumentException("argument types and values must be the same length");
+        }
+
+        final Constructor<E> ctor = findConstructor(componentClass, initArgTypes);
+
         this.length = length;
         this.componentClass = componentClass;
 
-        final Field[] fields = filterInstanceFields(componentClass.getDeclaredFields());
+        final Field[] fields = removeStaticFields(componentClass.getDeclaredFields());
         for (final Field field : fields)
         {
             field.setAccessible(true);
         }
         this.fields = fields;
         this.hasFinalFields = containsFinalQualifiedFields(fields);
+
 
         final int numFullPartitions = (int)(length / MAX_PARTITION_SIZE);
         final int lastPartitionSize = (int)(length % MAX_PARTITION_SIZE);
@@ -88,7 +124,7 @@ public class StructuredArray<E> implements Iterable<E>
         }
         partitions[numFullPartitions] = (E[])new Object[lastPartitionSize];
 
-        populatePartitions(partitions, factory);
+        populatePartitions(partitions, ctor, initArgs);
     }
 
     /**
@@ -246,7 +282,7 @@ public class StructuredArray<E> implements Iterable<E>
         return ctor;
     }
 
-    private static Field[] filterInstanceFields(final Field[] declaredFields)
+    private static Field[] removeStaticFields(final Field[] declaredFields)
     {
         int staticFieldCount = 0;
         for (final Field field : declaredFields)
@@ -284,7 +320,8 @@ public class StructuredArray<E> implements Iterable<E>
     }
 
     private static <E> void populatePartitions(final E[][] partitions,
-                                               final Factory<E> factory)
+                                               final Constructor<E> ctor,
+                                               final Object[] initArgs)
     {
         try
         {
@@ -292,7 +329,7 @@ public class StructuredArray<E> implements Iterable<E>
             {
                 for (int i = 0, size = partition.length; i < size; i++)
                 {
-                    partition[i] = factory.newInstance();
+                    partition[i] = ctor.newInstance(initArgs);
                 }
             }
         }
