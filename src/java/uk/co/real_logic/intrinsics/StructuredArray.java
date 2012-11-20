@@ -28,7 +28,7 @@ import static java.lang.reflect.Modifier.*;
  *      The length of the array is a signed 64-bit value.
  * </p>
  * <p>
- *      A JVM can optimise the implementation to provide a compact contiguous layout
+ *      A JVM can optimise the implementation with intrinsics to provide a compact contiguous layout
  *      that facilitates consistent stride based memory access.
  * </p>
  * @param <E> structured type occupying each element.
@@ -71,7 +71,7 @@ public class StructuredArray<E> implements Iterable<E>
      * @throws IllegalArgumentException if the constructor arguments do not match the signature.
      */
     public static <E> StructuredArray<E> newInstance(final long length, final Class<E> componentClass,
-                                                  final Class[] initArgTypes, final Object... initArgs)
+                                                     final Class[] initArgTypes, final Object... initArgs)
     {
         return new StructuredArray<E>(length, componentClass, initArgTypes, initArgs);
     }
@@ -112,7 +112,6 @@ public class StructuredArray<E> implements Iterable<E>
         }
         this.fields = fields;
         this.hasFinalFields = containsFinalQualifiedFields(fields);
-
 
         final int numFullPartitions = (int)(length / MAX_PARTITION_SIZE);
         final int lastPartitionSize = (int)(length % MAX_PARTITION_SIZE);
