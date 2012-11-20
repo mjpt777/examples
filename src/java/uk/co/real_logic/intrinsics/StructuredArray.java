@@ -251,7 +251,7 @@ public class StructuredArray<E> implements Iterable<E>
         {
             for (int i = fields.length - 1; i >= 0; i--)
             {
-                Field field = fields[i];
+                final Field field = fields[i];
                 field.set(destination, field.get(source));
             }
         }
