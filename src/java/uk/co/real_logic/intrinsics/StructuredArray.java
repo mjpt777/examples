@@ -156,13 +156,12 @@ public class StructuredArray<E> implements Iterable<E>
      * @param dstOffset offset index in the dst where the region begins.
      * @param count of structure elements to copy.
      * @param allowFinalFieldOverwrite allow final fields to be overwritten during a copy operation.
-     * @param <E> type of the structure being copied.
      * @throws IllegalStateException if final fields are discovered and all allowFinalFieldOverwrite is not true.
      * @throws ArrayStoreException if the {@link StructuredArray#getComponentClass()}s are not identical.
      */
-    public static <E> void shallowCopy(final StructuredArray<E> src, final long srcOffset,
-                                       final StructuredArray<E> dst, final long dstOffset,
-                                       final long count, final boolean allowFinalFieldOverwrite)
+    public static void shallowCopy(final StructuredArray src, final long srcOffset,
+                                   final StructuredArray dst, final long dstOffset,
+                                   final long count, final boolean allowFinalFieldOverwrite)
     {
         if (src.componentClass != dst.componentClass)
         {
