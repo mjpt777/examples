@@ -28,7 +28,7 @@ import static java.lang.reflect.Modifier.*;
  *      The length of the array is a signed 64-bit value.
  * </p>
  * <p>
- *      A JVM can optimise the implementation to provide a compact contiguous layout
+ *      A JVM can optimise the implementation via intrinsics to provide a compact contiguous layout
  *      that facilitates consistent stride based memory access.
  * </p>
  * @param <E> structured type occupying each element.
