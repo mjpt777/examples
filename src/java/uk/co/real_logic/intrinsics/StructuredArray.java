@@ -256,7 +256,7 @@ public class StructuredArray<E> implements Iterable<E>
         }
     }
 
-    private Constructor<E> findConstructor(final Class<E> componentClass, final Class[] argTypes)
+    private static <E> Constructor<E> findConstructor(final Class<E> componentClass, final Class[] argTypes)
     {
         final Constructor<E> ctor;
         try
