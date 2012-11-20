@@ -42,10 +42,12 @@ public class StructuredArray<E> implements Iterable<E>
     private static final int MAX_PARTITION_SIZE = 1 << PARTITION_POWER_OF_TWO;
     private static final int MASK = MAX_PARTITION_SIZE  - 1;
 
+    private final Field[] fields;
+    private final boolean hasFinalFields;
+    private final Class<E> componentClass;
+
     private final long length;
     private final E[][] partitions;
-    private final Field[] fields;
-    private final Class<E> componentClass;
 
     /**
      * Create an array of types to be laid out like a contiguous array of structures.
@@ -91,11 +93,15 @@ public class StructuredArray<E> implements Iterable<E>
 
         this.length = length;
         this.componentClass = componentClass;
-        this.fields = filterStaticFields(componentClass.getDeclaredFields());
+
+        final Field[] fields = filterStaticFields(componentClass.getDeclaredFields());
         for (final Field field : fields)
         {
             field.setAccessible(true);
         }
+        this.fields = fields;
+        this.hasFinalFields = containsFinalQualifiedFields(fields);
+
 
         final int numFullPartitions = (int)(length / MAX_PARTITION_SIZE);
         final int lastPartitionSize = (int)(length % MAX_PARTITION_SIZE);
@@ -170,9 +176,9 @@ public class StructuredArray<E> implements Iterable<E>
         }
 
         final Field[] fields = src.fields;
-        if (!allowFinalFieldOverwrite)
+        if (!allowFinalFieldOverwrite && dst.hasFinalFields)
         {
-            checkForFinalFields(fields);
+            throw new IllegalStateException("final fields should not be overwritten");
         }
 
         if (dst == src && (dstOffset >= srcOffset && (dstOffset + count) >= srcOffset))
@@ -289,6 +295,19 @@ public class StructuredArray<E> implements Iterable<E>
         return instanceFields;
     }
 
+    private boolean containsFinalQualifiedFields(final Field[] fields)
+    {
+        for (final Field field : fields)
+        {
+            if (isFinal(field.getModifiers()))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static <E> void populatePartitions(final E[][] partitions,
                                                final Constructor<E> ctor,
                                                final Object[] initArgs)
@@ -306,17 +325,6 @@ public class StructuredArray<E> implements Iterable<E>
         catch (final Exception ex)
         {
             throw new RuntimeException(ex);
-        }
-    }
-
-    private static void checkForFinalFields(final Field[] fields)
-    {
-        for (final Field field : fields)
-        {
-            if (isFinal(field.getModifiers()))
-            {
-                throw new IllegalStateException("Final fields should not be overwritten");
-            }
         }
     }
 
