@@ -177,6 +177,10 @@ public class StructuredArrayTest
         StructuredArray.shallowCopy(structuredArray, 1, structuredArray, 3, 1, false);
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // Test support below
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     private void initValues(final long length, final StructuredArray<MockStructure> structuredArray)
     {
         for (long i = 0; i < length; i++)
