@@ -91,7 +91,7 @@ public class StructuredArray<E> implements Iterable<E>
 
         this.length = length;
         this.componentClass = componentClass;
-        this.fields = componentClass.getDeclaredFields();
+        this.fields = filterStaticFields(componentClass.getDeclaredFields());
         for (final Field field : fields)
         {
             field.setAccessible(true);
@@ -107,7 +107,7 @@ public class StructuredArray<E> implements Iterable<E>
         }
         partitions[numFullPartitions] = (E[])new Object[lastPartitionSize];
 
-        populatePartitions(ctor, initArgs);
+        populatePartitions(partitions, ctor, initArgs);
     }
 
     /**
@@ -265,7 +265,33 @@ public class StructuredArray<E> implements Iterable<E>
         return ctor;
     }
 
-    private void populatePartitions(final Constructor<E> ctor, final Object[] initArgs)
+    private static Field[] filterStaticFields(final Field[] declaredFields)
+    {
+        int staticFieldCount = 0;
+        for (final Field field : declaredFields)
+        {
+            if (isStatic(field.getModifiers()))
+            {
+                staticFieldCount++;
+            }
+        }
+
+        final Field[] instanceFields = new Field[declaredFields.length - staticFieldCount];
+        int i = 0;
+        for (final Field field : declaredFields)
+        {
+            if (!isStatic(field.getModifiers()))
+            {
+                instanceFields[i++] = field;
+            }
+        }
+
+        return instanceFields;
+    }
+
+    private static <E> void populatePartitions(final E[][] partitions,
+                                               final Constructor<E> ctor,
+                                               final Object[] initArgs)
     {
         try
         {
@@ -287,7 +313,7 @@ public class StructuredArray<E> implements Iterable<E>
     {
         for (final Field field : fields)
         {
-            if (isFinal(field.getModifiers()) && !isStatic(field.getModifiers()))
+            if (isFinal(field.getModifiers()))
             {
                 throw new IllegalStateException("Final fields should not be overwritten");
             }
