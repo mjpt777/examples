@@ -286,7 +286,7 @@ public class StructuredArray<E> implements Iterable<E>
     {
         for (final Field field : fields)
         {
-            if (Modifier.isFinal(field.getModifiers()))
+            if (Modifier.isFinal(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
             {
                 throw new IllegalStateException("Final fields should not be overwritten");
             }
