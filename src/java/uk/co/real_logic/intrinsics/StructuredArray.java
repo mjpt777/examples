@@ -111,7 +111,6 @@ public class StructuredArray<E> implements Iterable<E>
         populatePartitions(ctor, initArgs);
     }
 
-
     /**
      * Get the length of the array by number of elements.
      *
@@ -219,6 +218,7 @@ public class StructuredArray<E> implements Iterable<E>
         {
             return cursor < length;
         }
+
         /**
          * {@inheritDoc}
          */
