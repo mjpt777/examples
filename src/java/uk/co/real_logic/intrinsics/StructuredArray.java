@@ -160,7 +160,7 @@ public class StructuredArray<E> implements Iterable<E>
                  srcIdx > limit;
                  srcIdx--, dstIdx--)
             {
-                shallowCopy(src.get(srcIdx), dst.get(dstIdx), fields);
+                reverseShallowCopy(src.get(srcIdx), dst.get(dstIdx), fields);
             }
         }
         else
@@ -236,6 +236,22 @@ public class StructuredArray<E> implements Iterable<E>
         {
             for (final Field field : fields)
             {
+                field.set(destination, field.get(source));
+            }
+        }
+        catch (final IllegalAccessException shouldNotHappen)
+        {
+            throw new RuntimeException(shouldNotHappen);
+        }
+    }
+
+    private static void reverseShallowCopy(final Object source, final Object destination, final Field[] fields)
+    {
+        try
+        {
+            for (int i = fields.length - 1; i >= 0; i--)
+            {
+                Field field = fields[i];
                 field.set(destination, field.get(source));
             }
         }
