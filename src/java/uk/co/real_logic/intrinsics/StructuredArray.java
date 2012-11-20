@@ -73,8 +73,6 @@ public class StructuredArray<E> implements Iterable<E>
                            final Class[] initArgTypes,
                            final Object... initArgs)
     {
-        final Constructor<E> ctor = findConstructor(componentClass, initArgTypes);
-
         if (length < 0)
         {
             throw new IllegalArgumentException("length cannot be negative");
@@ -89,6 +87,8 @@ public class StructuredArray<E> implements Iterable<E>
         {
             throw new IllegalArgumentException("argument types and values must be the same length");
         }
+
+        final Constructor<E> ctor = findConstructor(componentClass, initArgTypes);
 
         this.length = length;
         this.componentClass = componentClass;
