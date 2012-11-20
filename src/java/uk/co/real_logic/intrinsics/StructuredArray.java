@@ -17,9 +17,10 @@ package uk.co.real_logic.intrinsics;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+
+import static java.lang.reflect.Modifier.*;
 
 /**
  * <p>
@@ -286,7 +287,7 @@ public class StructuredArray<E> implements Iterable<E>
     {
         for (final Field field : fields)
         {
-            if (Modifier.isFinal(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
+            if (isFinal(field.getModifiers()) && !isStatic(field.getModifiers()))
             {
                 throw new IllegalStateException("Final fields should not be overwritten");
             }
