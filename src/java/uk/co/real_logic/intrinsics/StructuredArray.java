@@ -73,7 +73,7 @@ public class StructuredArray<E> implements Iterable<E>
                            final Class[] initArgTypes,
                            final Object... initArgs)
     {
-        final Constructor<E> constructor = findConstructor(componentClass, initArgTypes);
+        final Constructor<E> ctor = findConstructor(componentClass, initArgTypes);
 
         if (length < 0)
         {
@@ -108,7 +108,7 @@ public class StructuredArray<E> implements Iterable<E>
         }
         partitions[numFullPartitions] = (E[])new Object[lastPartitionSize];
 
-        populatePartitions(constructor, initArgs);
+        populatePartitions(ctor, initArgs);
     }
 
 
@@ -254,20 +254,20 @@ public class StructuredArray<E> implements Iterable<E>
 
     private Constructor<E> findConstructor(final Class<E> componentClass, final Class[] argTypes)
     {
-        final Constructor<E> constructor;
+        final Constructor<E> ctor;
         try
         {
-            constructor = componentClass.getConstructor(argTypes);
+            ctor = componentClass.getConstructor(argTypes);
         }
         catch (final NoSuchMethodException ex)
         {
             throw new IllegalArgumentException(ex);
         }
 
-        return constructor;
+        return ctor;
     }
 
-    private void populatePartitions(final Constructor<E> constructor, final Object[] initArgs)
+    private void populatePartitions(final Constructor<E> ctor, final Object[] initArgs)
     {
         try
         {
@@ -275,7 +275,7 @@ public class StructuredArray<E> implements Iterable<E>
             {
                 for (int i = 0, size = partition.length; i < size; i++)
                 {
-                    partition[i] = constructor.newInstance(initArgs);
+                    partition[i] = ctor.newInstance(initArgs);
                 }
             }
         }
@@ -296,13 +296,13 @@ public class StructuredArray<E> implements Iterable<E>
         }
     }
 
-    private static void shallowCopy(final Object source, final Object destination, final Field[] fields)
+    private static void shallowCopy(final Object src, final Object dst, final Field[] fields)
     {
         try
         {
             for (final Field field : fields)
             {
-                field.set(destination, field.get(source));
+                field.set(dst, field.get(src));
             }
         }
         catch (final IllegalAccessException shouldNotHappen)
@@ -311,14 +311,14 @@ public class StructuredArray<E> implements Iterable<E>
         }
     }
 
-    private static void reverseShallowCopy(final Object source, final Object destination, final Field[] fields)
+    private static void reverseShallowCopy(final Object src, final Object dst, final Field[] fields)
     {
         try
         {
             for (int i = fields.length - 1; i >= 0; i--)
             {
                 final Field field = fields[i];
-                field.set(destination, field.get(source));
+                field.set(dst, field.get(src));
             }
         }
         catch (final IllegalAccessException shouldNotHappen)
