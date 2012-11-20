@@ -35,6 +35,26 @@ public class StructuredArrayTest
     }
 
     @Test
+    public void shouldConstructArrayOfGivenLengthAndInitValues()
+    {
+        final Class[] initArgTypes = {long.class, long.class};
+        final long expectedIndex = 4L;
+        final long expectedValue = 777L;
+        final long length = 7;
+        final StructuredArray<MockStructure> structuredArray
+            = new StructuredArray<MockStructure>(length, MockStructure.class, initArgTypes, expectedIndex, expectedValue);
+
+        assertThat(valueOf(structuredArray.getLength()), is(valueOf(length)));
+        assertTrue(structuredArray.getComponentClass() == MockStructure.class);
+        for (long i = 0; i < length; i++)
+        {
+            MockStructure mockStructure = structuredArray.get(i);
+            assertThat(valueOf(mockStructure.getIndex()), is(valueOf(expectedIndex)));
+            assertThat(valueOf(mockStructure.getTestValue()), is(valueOf(expectedValue)));
+        }
+    }
+
+    @Test
     public void shouldGetCorrectValueAtGivenIndex()
     {
         final long length = 11;
@@ -109,7 +129,7 @@ public class StructuredArrayTest
 
         initValues(length, structuredArray);
 
-        StructuredArray.shallowCopy(structuredArray, 4, structuredArray, 3, 2);
+        StructuredArray.shallowCopy(structuredArray, 4, structuredArray, 3, 2, false);
 
         assertThat(valueOf(structuredArray.get(3).getIndex()), is(valueOf(4)));
         assertThat(valueOf(structuredArray.get(4).getIndex()), is(valueOf(5)));
@@ -124,7 +144,7 @@ public class StructuredArrayTest
 
         initValues(length, structuredArray);
 
-        StructuredArray.shallowCopy(structuredArray, 5, structuredArray, 6, 2);
+        StructuredArray.shallowCopy(structuredArray, 5, structuredArray, 6, 2, false);
 
         assertThat(valueOf(structuredArray.get(5).getIndex()), is(valueOf(5)));
         assertThat(valueOf(structuredArray.get(6).getIndex()), is(valueOf(5)));
@@ -138,6 +158,16 @@ public class StructuredArrayTest
         final StructuredArray<MockStructure> structuredArray = new StructuredArray<MockStructure>(length, MockStructure.class);
 
         structuredArray.get(length);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionWhenFinalFieldWouldBeCopied()
+    {
+        final long length = 11;
+        final StructuredArray<MockStructureWithFinalField> structuredArray
+            = new StructuredArray<MockStructureWithFinalField>(length, MockStructureWithFinalField.class);
+
+        StructuredArray.shallowCopy(structuredArray, 1, structuredArray, 3, 1, false);
     }
 
     private void initValues(final long length, final StructuredArray<MockStructure> structuredArray)
@@ -154,6 +184,16 @@ public class StructuredArrayTest
     {
         private long index = -1;
         private long testValue = Long.MIN_VALUE;
+
+        public MockStructure()
+        {
+        }
+
+        public MockStructure(final long index, final long testValue)
+        {
+            this.index = index;
+            this.testValue = testValue;
+        }
 
         public long getIndex()
         {
@@ -198,6 +238,16 @@ public class StructuredArrayTest
                 "index=" + index +
                 ", testValue=" + testValue +
                 '}';
+        }
+    }
+
+    private static class MockStructureWithFinalField
+    {
+        private final int value;
+
+        private MockStructureWithFinalField(final int value)
+        {
+            this.value = value;
         }
     }
 }

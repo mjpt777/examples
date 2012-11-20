@@ -15,7 +15,9 @@
  */
 package uk.co.real_logic.intrinsics;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -32,6 +34,9 @@ import java.util.NoSuchElementException;
  */
 public class StructuredArray<E> implements Iterable<E>
 {
+    private static final Class[] EMPTY_INIT_ARG_TYPES = new Class[0];
+    private static final Object[] EMPTY_INIT_ARGS = new Object[0];
+
     private static final int PARTITION_POWER_OF_TWO = 30;
     private static final int MAX_PARTITION_SIZE = 1 << PARTITION_POWER_OF_TWO;
     private static final int MASK = MAX_PARTITION_SIZE  - 1;
@@ -47,9 +52,29 @@ public class StructuredArray<E> implements Iterable<E>
      * @param length of the array to create.
      * @param componentClass of each element in the array
      */
-    @SuppressWarnings("unchecked")
     public StructuredArray(final long length, final Class<E> componentClass)
     {
+        this(length, componentClass, EMPTY_INIT_ARG_TYPES, EMPTY_INIT_ARGS);
+    }
+
+    /**
+     * Create an array of types to be laid out like a contiguous array of structures and provide
+     * a list of arguments to be passed to a constructor for each element.
+     *
+     * @param length of the array to create.
+     * @param componentClass of each element in the array
+     * @param initArgTypes for selecting the constructor to call for initialising each structure object.
+     * @param initArgs to be passed to a constructor for initialising each structure object.
+     * @throws IllegalArgumentException if the constructor arguments do not match the signature.
+     */
+    @SuppressWarnings("unchecked")
+    public StructuredArray(final long length,
+                           final Class<E> componentClass,
+                           final Class[] initArgTypes,
+                           final Object... initArgs)
+    {
+        final Constructor<E> constructor = findConstructor(componentClass, initArgTypes);
+
         if (length < 0)
         {
             throw new IllegalArgumentException("length cannot be negative");
@@ -58,6 +83,11 @@ public class StructuredArray<E> implements Iterable<E>
         if (null == componentClass)
         {
             throw new NullPointerException("componentClass cannot be null");
+        }
+
+        if (initArgTypes.length != initArgs.length)
+        {
+            throw new IllegalArgumentException("argument types and values must be the same length");
         }
 
         this.length = length;
@@ -78,21 +108,9 @@ public class StructuredArray<E> implements Iterable<E>
         }
         partitions[numFullPartitions] = (E[])new Object[lastPartitionSize];
 
-        try
-        {
-            for (final E[] partition : partitions)
-            {
-                for (int i = 0, size = partition.length; i < size; i++)
-                {
-                    partition[i] = componentClass.newInstance();
-                }
-            }
-        }
-        catch (final Exception ex)
-        {
-            throw new RuntimeException(ex);
-        }
+        populatePartitions(constructor, initArgs);
     }
+
 
     /**
      * Get the length of the array by number of elements.
@@ -137,12 +155,14 @@ public class StructuredArray<E> implements Iterable<E>
      * @param dst array into which the copy should occur.
      * @param dstOffset offset index in the dst where the region begins.
      * @param count of structure elements to copy.
+     * @param allowFinalFieldOverwrite allow final fields to be overwritten during a copy operation.
      * @param <E> type of the structure being copied.
+     * @throws IllegalStateException if final fields are discovered and all allowFinalFieldOverwrite is not true.
      * @throws ArrayStoreException if the {@link StructuredArray#getComponentClass()}s are not identical.
      */
     public static <E> void shallowCopy(final StructuredArray<E> src, final long srcOffset,
                                        final StructuredArray<E> dst, final long dstOffset,
-                                       final long count)
+                                       final long count, final boolean allowFinalFieldOverwrite)
     {
         if (src.componentClass != dst.componentClass)
         {
@@ -153,6 +173,10 @@ public class StructuredArray<E> implements Iterable<E>
         }
 
         final Field[] fields = src.fields;
+        if (!allowFinalFieldOverwrite)
+        {
+            checkForFinalFields(fields);
+        }
 
         if (dst == src && (dstOffset >= srcOffset && (dstOffset + count) >= srcOffset))
         {
@@ -189,6 +213,7 @@ public class StructuredArray<E> implements Iterable<E>
     {
 
         private long cursor = 0;
+
         /**
          * {@inheritDoc}
          */
@@ -196,7 +221,6 @@ public class StructuredArray<E> implements Iterable<E>
         {
             return cursor < length;
         }
-
         /**
          * {@inheritDoc}
          */
@@ -227,7 +251,50 @@ public class StructuredArray<E> implements Iterable<E>
         {
             cursor = 0;
         }
+    }
 
+    private Constructor<E> findConstructor(final Class<E> componentClass, final Class[] argTypes)
+    {
+        final Constructor<E> constructor;
+        try
+        {
+            constructor = componentClass.getConstructor(argTypes);
+        }
+        catch (final NoSuchMethodException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+
+        return constructor;
+    }
+
+    private void populatePartitions(final Constructor<E> constructor, final Object[] initArgs)
+    {
+        try
+        {
+            for (final E[] partition : partitions)
+            {
+                for (int i = 0, size = partition.length; i < size; i++)
+                {
+                    partition[i] = constructor.newInstance(initArgs);
+                }
+            }
+        }
+        catch (final Exception ex)
+        {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private static void checkForFinalFields(final Field[] fields)
+    {
+        for (final Field field : fields)
+        {
+            if (Modifier.isFinal(field.getModifiers()))
+            {
+                throw new IllegalStateException("Final fields should not be updated");
+            }
+        }
     }
 
     private static void shallowCopy(final Object source, final Object destination, final Field[] fields)
