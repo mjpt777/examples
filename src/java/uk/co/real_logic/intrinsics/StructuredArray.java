@@ -210,7 +210,6 @@ public class StructuredArray<E> implements Iterable<E>
      */
     public class StructureIterator implements Iterator<E>
     {
-
         private long cursor = 0;
 
         /**
