@@ -35,9 +35,6 @@ import static java.lang.reflect.Modifier.*;
  */
 public class StructuredArray<E> implements Iterable<E>
 {
-    private static final Class[] EMPTY_INIT_ARG_TYPES = new Class[0];
-    private static final Object[] EMPTY_INIT_ARGS = new Object[0];
-
     private static final int PARTITION_POWER_OF_TWO = 30;
     private static final int MAX_PARTITION_SIZE = 1 << PARTITION_POWER_OF_TWO;
     private static final int MASK = MAX_PARTITION_SIZE  - 1;
@@ -50,29 +47,16 @@ public class StructuredArray<E> implements Iterable<E>
     private final E[][] partitions;
 
     /**
-     * Create an array of types to be laid out like a contiguous array of structures.
-     *
-     * @param length of the array to create.
-     * @param componentClass of each element in the array
-     */
-    public StructuredArray(final long length, final Class<E> componentClass)
-    {
-        this(length, componentClass, EMPTY_INIT_ARG_TYPES, EMPTY_INIT_ARGS);
-    }
-
-    /**
      * Create an array of types to be laid out like a contiguous array of structures and provide
      * a list of arguments to be passed to a constructor for each element.
      *
      * @param length of the array to create.
      * @param componentClass of each element in the array
-     * @param initArgTypes for selecting the constructor to call for initialising each structure object.
-     * @param initArgs to be passed to a constructor for initialising each structure object.
+     * @param factory for creating new element instances.
      * @throws IllegalArgumentException if the constructor arguments do not match the signature.
      */
     @SuppressWarnings("unchecked")
-    public StructuredArray(final long length, final Class<E> componentClass,
-                           final Class[] initArgTypes, final Object... initArgs)
+    public StructuredArray(final long length, final Class<E> componentClass, final Factory<E> factory)
     {
         if (length < 0)
         {
@@ -83,14 +67,6 @@ public class StructuredArray<E> implements Iterable<E>
         {
             throw new NullPointerException("componentClass cannot be null");
         }
-
-        if (initArgTypes.length != initArgs.length)
-        {
-            throw new IllegalArgumentException("argument types and values must be the same length");
-        }
-
-        final Constructor<E> ctor = findConstructor(componentClass, initArgTypes);
-
         this.length = length;
         this.componentClass = componentClass;
 
@@ -113,7 +89,7 @@ public class StructuredArray<E> implements Iterable<E>
         }
         partitions[numFullPartitions] = (E[])new Object[lastPartitionSize];
 
-        populatePartitions(partitions, ctor, initArgs);
+        populatePartitions(partitions, factory);
     }
 
     /**
@@ -309,8 +285,7 @@ public class StructuredArray<E> implements Iterable<E>
     }
 
     private static <E> void populatePartitions(final E[][] partitions,
-                                               final Constructor<E> ctor,
-                                               final Object[] initArgs)
+                                               final Factory<E> factory)
     {
         try
         {
@@ -318,7 +293,7 @@ public class StructuredArray<E> implements Iterable<E>
             {
                 for (int i = 0, size = partition.length; i < size; i++)
                 {
-                    partition[i] = ctor.newInstance(initArgs);
+                    partition[i] = factory.newInstance();
                 }
             }
         }
