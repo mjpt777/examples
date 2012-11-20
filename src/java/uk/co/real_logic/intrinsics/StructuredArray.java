@@ -94,7 +94,7 @@ public class StructuredArray<E> implements Iterable<E>
         this.length = length;
         this.componentClass = componentClass;
 
-        final Field[] fields = filterStaticFields(componentClass.getDeclaredFields());
+        final Field[] fields = removeStaticFields(componentClass.getDeclaredFields());
         for (final Field field : fields)
         {
             field.setAccessible(true);
@@ -271,7 +271,7 @@ public class StructuredArray<E> implements Iterable<E>
         return ctor;
     }
 
-    private static Field[] filterStaticFields(final Field[] declaredFields)
+    private static Field[] removeStaticFields(final Field[] declaredFields)
     {
         int staticFieldCount = 0;
         for (final Field field : declaredFields)
