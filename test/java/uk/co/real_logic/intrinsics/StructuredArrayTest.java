@@ -28,6 +28,7 @@ public class StructuredArrayTest
     public void shouldConstructArrayOfGivenLength()
     {
         final long length = 7;
+
         final StructuredArray<MockStructure> structuredArray =
             StructuredArray.newInstance(length, MockStructure.class);
 
@@ -42,17 +43,38 @@ public class StructuredArrayTest
         final long expectedIndex = 4L;
         final long expectedValue = 777L;
         final long length = 7;
+
         final StructuredArray<MockStructure> structuredArray =
             StructuredArray.newInstance(length, MockStructure.class, initArgTypes, expectedIndex, expectedValue);
 
+        assertCorrectInitialisation(expectedIndex, expectedValue, length, structuredArray);
+    }
+
+    @Test
+    public void shouldConstructArrayElementsViaFactory()
+    {
+        final long length = 7;
+        final ComponentFactory<MockStructure> componentFactory = new DefaultMockComponentFactory();
+        final StructuredArray<MockStructure> structuredArray =
+            StructuredArray.newInstance(length, MockStructure.class, componentFactory);
+
         assertThat(valueOf(structuredArray.getLength()), is(valueOf(length)));
         assertTrue(structuredArray.getComponentClass() == MockStructure.class);
-        for (long i = 0; i < length; i++)
-        {
-            MockStructure mockStructure = structuredArray.get(i);
-            assertThat(valueOf(mockStructure.getIndex()), is(valueOf(expectedIndex)));
-            assertThat(valueOf(mockStructure.getTestValue()), is(valueOf(expectedValue)));
-        }
+    }
+
+    @Test
+    public void shouldConstructArrayElementsViaFactoryWithInitValues()
+    {
+        final Class[] initArgTypes = {long.class, long.class};
+        final long expectedIndex = 4L;
+        final long expectedValue = 777L;
+        final long length = 7;
+        final ComponentFactory<MockStructure> componentFactory = new InitArgsMockComponentFactory();
+
+        final StructuredArray<MockStructure> structuredArray =
+            StructuredArray.newInstance(length, MockStructure.class, componentFactory, initArgTypes, expectedIndex, expectedValue);
+
+        assertCorrectInitialisation(expectedIndex, expectedValue, length, structuredArray);
     }
 
     @Test
@@ -181,6 +203,19 @@ public class StructuredArrayTest
     // Test support below
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
+    private void assertCorrectInitialisation(final long expectedIndex, final long expectedValue, final long length,
+                                             final StructuredArray<MockStructure> structuredArray)
+    {
+        assertThat(valueOf(structuredArray.getLength()), is(valueOf(length)));
+        assertTrue(structuredArray.getComponentClass() == MockStructure.class);
+        for (long i = 0; i < length; i++)
+        {
+            MockStructure mockStructure = structuredArray.get(i);
+            assertThat(valueOf(mockStructure.getIndex()), is(valueOf(expectedIndex)));
+            assertThat(valueOf(mockStructure.getTestValue()), is(valueOf(expectedValue)));
+        }
+    }
+
     private void initValues(final long length, final StructuredArray<MockStructure> structuredArray)
     {
         for (long i = 0; i < length; i++)
@@ -255,5 +290,23 @@ public class StructuredArrayTest
     private static class MockStructureWithFinalField
     {
         private final int value = 888;
+    }
+
+    private static class DefaultMockComponentFactory implements ComponentFactory<MockStructure>
+    {
+        public MockStructure newInstance(final Object[] initArgs)
+        {
+            return new MockStructure();
+        }
+    }
+
+    private static class InitArgsMockComponentFactory implements ComponentFactory<MockStructure>
+    {
+        public MockStructure newInstance(final Object[] initArgs)
+        {
+            final Long firstArg = (Long)initArgs[0];
+            final Long secondArg = (Long)initArgs[1];
+            return new MockStructure(firstArg.longValue(), secondArg.longValue());
+        }
     }
 }
