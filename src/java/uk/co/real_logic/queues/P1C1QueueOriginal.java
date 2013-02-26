@@ -21,7 +21,7 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
 
-public final class OneToOneConcurrentArrayQueueOriginal<E> implements Queue<E> {
+public final class P1C1QueueOriginal<E> implements Queue<E> {
     private final int capacity;
     private final int mask;
     private final E[] buffer;
@@ -37,7 +37,7 @@ public final class OneToOneConcurrentArrayQueueOriginal<E> implements Queue<E> {
     private final PaddedLong headCache = new PaddedLong();
 
     @SuppressWarnings("unchecked")
-    public OneToOneConcurrentArrayQueueOriginal(final int capacity) {
+    public P1C1QueueOriginal(final int capacity) {
 	this.capacity = findNextPositivePowerOfTwo(capacity);
 	mask = this.capacity - 1;
 	buffer = (E[]) new Object[this.capacity];

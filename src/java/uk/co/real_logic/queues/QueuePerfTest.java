@@ -18,16 +18,16 @@ package uk.co.real_logic.queues;
 import java.util.Queue;
 
 public class QueuePerfTest {
-    public static final int QUEUE_CAPACITY = 32 * 1024;
-    public static final int REPETITIONS = 50 * 1000 * 1000;
+    public static final int QUEUE_CAPACITY = 32*1024 * 1024;
+    public static final int REPETITIONS = 500 * 1000 * 1000;
     public static final Integer TEST_VALUE = Integer.valueOf(777);
 
     public static void main(final String[] args) throws Exception {
-	
+
+	final Queue<Integer> queue = createQueue(args[0]);
 
 	for (int i = 0; i < 20; i++) {
 	    System.gc();
-	    final Queue<Integer> queue = createQueue(args[0]);
 	    performanceRun(i, queue);
 	}
     }
@@ -35,12 +35,23 @@ public class QueuePerfTest {
     private static Queue<Integer> createQueue(final String option) {
 	switch (Integer.parseInt(option)) {
 	case 0:
-	    return new OneToOneConcurrentArrayQueueOriginal<Integer>(
+	    return new P1C1QueueOriginal<Integer>(
 		    QUEUE_CAPACITY);
 	case 1:
-	    return new OneToOneConcurrentArrayQueue2Lines<Integer>(QUEUE_CAPACITY);
+	    return new P1C1Queue2CacheLinesHeapBuffer<Integer>(
+		    QUEUE_CAPACITY);
 	case 2:
-	    return new OneToOneConcurrentArrayQueue4Lines<Integer>(QUEUE_CAPACITY);
+	    return new P1C1Queue4CacheLinesHeapBuffer<Integer>(
+		    QUEUE_CAPACITY);
+	case 3:
+	    return new P1C1Queue4CacheLinesHeapBufferUnsafe<Integer>(
+		    QUEUE_CAPACITY);
+	case 4:
+	    return new P1C1Queue4CacheLinesOffHeapBuffer(
+		    QUEUE_CAPACITY);
+	case 5:
+	    return new P1C1QueueOriginalPrimitive(
+		    QUEUE_CAPACITY);
 
 	default:
 	    throw new IllegalArgumentException("Invalid option: " + option);

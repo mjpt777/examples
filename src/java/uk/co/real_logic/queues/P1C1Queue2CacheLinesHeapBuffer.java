@@ -23,9 +23,10 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
-public final class OneToOneConcurrentArrayQueue4Lines<E> implements Queue<E> {
-    // 24b,8b,32b | 24b,8b,32b | 24b,8b,32b | 24b,8b,32b
-    private final ByteBuffer buffy = allocateAlignedByteBuffer(4*CACHE_LINE_SIZE,
+public final class P1C1Queue2CacheLinesHeapBuffer<E> implements Queue<E> {
+    // 24b,8b, 8b, 24b | ,24b,8b, 8b, 24b
+    // PAD,head,tailCache,PAD,PAD,tail,headCache,PAD
+    private final ByteBuffer buffy = allocateAlignedByteBuffer(2*CACHE_LINE_SIZE,
 	    CACHE_LINE_SIZE);
     private final long headAddress;
     private final long tailCacheAddress;
@@ -37,13 +38,13 @@ public final class OneToOneConcurrentArrayQueue4Lines<E> implements Queue<E> {
     private final E[] buffer;
 
     @SuppressWarnings("unchecked")
-    public OneToOneConcurrentArrayQueue4Lines(final int capacity) {
+    public P1C1Queue2CacheLinesHeapBuffer(final int capacity) {
 	long alignedAddress = UnsafeDirectByteBuffer.getAddress(buffy);
 
 	headAddress = alignedAddress+(CACHE_LINE_SIZE/2 - 8);
-	tailCacheAddress = headAddress + CACHE_LINE_SIZE;
-	tailAddress = tailCacheAddress + CACHE_LINE_SIZE;
-	headCacheAddress = tailAddress + CACHE_LINE_SIZE;
+	tailCacheAddress = headAddress + 8;
+	tailAddress = headAddress + CACHE_LINE_SIZE;
+	headCacheAddress = tailAddress + 8;
 
 	this.capacity = findNextPositivePowerOfTwo(capacity);
 	mask = this.capacity - 1;
