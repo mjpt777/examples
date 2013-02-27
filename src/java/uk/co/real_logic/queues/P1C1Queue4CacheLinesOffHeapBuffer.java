@@ -18,6 +18,7 @@ package uk.co.real_logic.queues;
 import static uk.co.real_logic.queues.UnsafeDirectByteBuffer.*;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -68,7 +69,24 @@ public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
 		arrayBase = alignedAddress + 4* CACHE_LINE_SIZE;
 		mask = this.capacity - 1;
 	}
+	public P1C1Queue4CacheLinesOffHeapBuffer(final ByteBuffer buff, final int capacity) {
+		this.capacity = findNextPositivePowerOfTwo(capacity);
+		buffy = alignedSlice(4 * CACHE_LINE_SIZE + this.capacity<<arrayScale, 
+									CACHE_LINE_SIZE, buff);
 
+		long alignedAddress = UnsafeDirectByteBuffer.getAddress(buffy);
+
+		headAddress = alignedAddress + (CACHE_LINE_SIZE / 2 - 8);
+		tailCacheAddress = headAddress + CACHE_LINE_SIZE;
+		tailAddress = tailCacheAddress + CACHE_LINE_SIZE;
+		headCacheAddress = tailAddress + CACHE_LINE_SIZE;
+		arrayBase = alignedAddress + 4* CACHE_LINE_SIZE;
+		setTail(0);
+		setHead(0);
+		setHeadCache(0);
+		setTailCache(0);
+		mask = this.capacity - 1;
+	}
 	public static int findNextPositivePowerOfTwo(final int value) {
 		return 1 << (32 - Integer.numberOfLeadingZeros(value - 1));
 	}
@@ -97,7 +115,7 @@ public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
 
 		long offset = arrayBase
 		        + ((currentTail & mask) << arrayScale);
-		UnsafeAccess.unsafe.putInt(null, offset, e.intValue());
+		UnsafeAccess.unsafe.putInt(offset, e.intValue());
 
 		setTail(currentTail + 1);
 
@@ -114,7 +132,7 @@ public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
 		}
 
 		final long offset = arrayBase + ((currentHead & mask) << arrayScale);
-		final int e = UnsafeAccess.unsafe.getInt(null, offset);
+		final int e = UnsafeAccess.unsafe.getInt(offset);
 //		UnsafeAccess.unsafe.putInt(null, offset, 0);
 		setHead(currentHead + 1);
 
