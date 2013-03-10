@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.co.real_logic.queues;
+package psy.lob.saw.queues;
 
-import static uk.co.real_logic.queues.UnsafeDirectByteBuffer.*;
+import static psy.lob.saw.queues.UnsafeDirectByteBuffer.*;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
-public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
+public final class P1C1Queue4CacheLinesHeapBufferUnsafe<E> implements Queue<E> {
 	// 24b,8b,32b | 24b,8b,32b | 24b,8b,32b | 24b,8b,32b
-	private final ByteBuffer buffy;
+	private final ByteBuffer buffy = allocateAlignedByteBuffer(
+	        4 * CACHE_LINE_SIZE, CACHE_LINE_SIZE);
 	private final long headAddress;
 	private final long tailCacheAddress;
 	private final long tailAddress;
@@ -34,64 +34,47 @@ public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
 
 	private final int capacity;
 	private final int mask;
-	private final long arrayBase;
-	private static final int arrayScale = 2;
-//
-//	static {
-//		try {
-//			final int scale = UnsafeAccess.unsafe
-//			        .arrayIndexScale(Object[].class);
-//
-//			if (4 == scale) {
-//				arrayScale = 2;
-//			} else if (8 == scale) {
-//				arrayScale = 3;
-//			} else {
-//				throw new IllegalStateException("Unknown pointer size");
-//			}
-//		} catch (Exception e) {
-//			throw new RuntimeException(e);
-//		}
-//	}
+	private final E[] buffer;
+	private static final long arrayBase;
+	private static final int arrayScale;
+
+	static {
+		try {
+			arrayBase = UnsafeAccess.unsafe.arrayBaseOffset(Object[].class);
+			final int scale = UnsafeAccess.unsafe
+			        .arrayIndexScale(Object[].class);
+
+			if (4 == scale) {
+				arrayScale = 2;
+			} else if (8 == scale) {
+				arrayScale = 3;
+			} else {
+				throw new IllegalStateException("Unknown pointer size");
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	@SuppressWarnings("unchecked")
-	public P1C1Queue4CacheLinesOffHeapBuffer(final int capacity) {
-		this.capacity = findNextPositivePowerOfTwo(capacity);
-		buffy = allocateAlignedByteBuffer(
-		        4 * CACHE_LINE_SIZE + this.capacity<<arrayScale, CACHE_LINE_SIZE);
-
+	public P1C1Queue4CacheLinesHeapBufferUnsafe(final int capacity) {
 		long alignedAddress = UnsafeDirectByteBuffer.getAddress(buffy);
 
 		headAddress = alignedAddress + (CACHE_LINE_SIZE / 2 - 8);
 		tailCacheAddress = headAddress + CACHE_LINE_SIZE;
 		tailAddress = tailCacheAddress + CACHE_LINE_SIZE;
 		headCacheAddress = tailAddress + CACHE_LINE_SIZE;
-		arrayBase = alignedAddress + 4* CACHE_LINE_SIZE;
-		mask = this.capacity - 1;
-	}
-	public P1C1Queue4CacheLinesOffHeapBuffer(final ByteBuffer buff, final int capacity) {
+
 		this.capacity = findNextPositivePowerOfTwo(capacity);
-		buffy = alignedSlice(4 * CACHE_LINE_SIZE + this.capacity<<arrayScale, 
-									CACHE_LINE_SIZE, buff);
-
-		long alignedAddress = UnsafeDirectByteBuffer.getAddress(buffy);
-
-		headAddress = alignedAddress + (CACHE_LINE_SIZE / 2 - 8);
-		tailCacheAddress = headAddress + CACHE_LINE_SIZE;
-		tailAddress = tailCacheAddress + CACHE_LINE_SIZE;
-		headCacheAddress = tailAddress + CACHE_LINE_SIZE;
-		arrayBase = alignedAddress + 4* CACHE_LINE_SIZE;
-		setTail(0);
-		setHead(0);
-		setHeadCache(0);
-		setTailCache(0);
 		mask = this.capacity - 1;
+		buffer = (E[]) new Object[this.capacity];
 	}
+
 	public static int findNextPositivePowerOfTwo(final int value) {
 		return 1 << (32 - Integer.numberOfLeadingZeros(value - 1));
 	}
 
-	public boolean add(final Integer e) {
+	public boolean add(final E e) {
 		if (offer(e)) {
 			return true;
 		}
@@ -99,7 +82,7 @@ public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
 		throw new IllegalStateException("Queue is full");
 	}
 
-	public boolean offer(final Integer e) {
+	public boolean offer(final E e) {
 		if (null == e) {
 			throw new NullPointerException("Null is not a valid element");
 		}
@@ -113,16 +96,15 @@ public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
 			}
 		}
 
-		long offset = arrayBase
-		        + ((currentTail & mask) << arrayScale);
-		UnsafeAccess.unsafe.putInt(offset, e.intValue());
+		UnsafeAccess.unsafe.putObject(buffer, arrayBase
+		        + ((currentTail & mask) << arrayScale), e);
 
 		setTail(currentTail + 1);
 
 		return true;
 	}
 
-	public Integer poll() {
+	public E poll() {
 		final long currentHead = getHead();
 		if (currentHead >= getTailCache()) {
 			setTailCache(getTail());
@@ -132,15 +114,15 @@ public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
 		}
 
 		final long offset = arrayBase + ((currentHead & mask) << arrayScale);
-		final int e = UnsafeAccess.unsafe.getInt(offset);
-//		UnsafeAccess.unsafe.putInt(null, offset, 0);
+		final E e = (E) UnsafeAccess.unsafe.getObject(buffer, offset);
+		UnsafeAccess.unsafe.putObject(buffer, offset, null);
 		setHead(currentHead + 1);
 
 		return e;
 	}
 
-	public Integer remove() {
-		final Integer e = poll();
+	public E remove() {
+		final E e = poll();
 		if (null == e) {
 			throw new NoSuchElementException("Queue is empty");
 		}
@@ -148,8 +130,8 @@ public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
 		return e;
 	}
 
-	public Integer element() {
-		final Integer e = peek();
+	public E element() {
+		final E e = peek();
 		if (null == e) {
 			throw new NoSuchElementException("Queue is empty");
 		}
@@ -157,8 +139,8 @@ public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
 		return e;
 	}
 
-	public Integer peek() {
-		return null;//buffer[(int) getHead() & mask];
+	public E peek() {
+		return buffer[(int) getHead() & mask];
 	}
 
 	public int size() {
@@ -170,23 +152,21 @@ public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
 	}
 
 	public boolean contains(final Object o) {
+		if (null == o) {
+			return false;
+		}
+
+		for (long i = getHead(), limit = getTail(); i < limit; i++) {
+			final E e = buffer[(int) i & mask];
+			if (o.equals(e)) {
+				return true;
+			}
+		}
+
 		return false;
 	}
-//	if (null == o) {
-//			return false;
-//		}
-//
-//		for (long i = getHead(), limit = getTail(); i < limit; i++) {
-//			final E e = buffer[(int) i & mask];
-//			if (o.equals(e)) {
-//				return true;
-//			}
-//		}
-//
-//		return false;
-//	}
 
-	public Iterator<Integer> iterator() {
+	public Iterator<E> iterator() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -212,8 +192,8 @@ public final class P1C1Queue4CacheLinesOffHeapBuffer implements Queue<Integer> {
 		return true;
 	}
 
-	public boolean addAll(final Collection<? extends Integer> c) {
-		for (final Integer e : c) {
+	public boolean addAll(final Collection<? extends E> c) {
+		for (final E e : c) {
 			add(e);
 		}
 
