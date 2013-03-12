@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.channels.IllegalSelectorException;
 import java.util.Queue;
 
 import psy.lob.saw.queues.P1C1OffHeapQueue;
@@ -20,7 +21,7 @@ import psy.lob.saw.queues.UnsafeDirectByteBuffer;
  *
  */
 public class IpcPerfTest {
-	public static final int QUEUE_CAPACITY = 128 * 1024 * 1024;
+	public static final int QUEUE_CAPACITY = 32 * 1024;
 	public static final int REPETITIONS = 500 * 1024 * 1024;
 	public static final Integer TEST_VALUE = Integer.valueOf(777);
 	public static ByteBuffer syncArea;
@@ -126,7 +127,11 @@ public class IpcPerfTest {
 		int i = REPETITIONS;
 		do {
 			while (null == (result = queue.poll())) {
+
 //				Thread.yield();
+			}
+			if(result != (i & 31)){
+				throw new IllegalStateException();
 			}
 		} while (0 != --i);
 		while(!UnsafeAccess.unsafe.compareAndSwapInt(null, syncAddress, 3*runNumber, 3*runNumber+1))

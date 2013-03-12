@@ -70,6 +70,9 @@ public class QueuePerfTest {
 			while (null == (result = queue.poll())) {
 //				Thread.yield();
 			}
+			if(result != (i & 31)){
+				throw new IllegalStateException();
+			}
 		} while (0 != --i);
 
 		thread.join();
