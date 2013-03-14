@@ -21,8 +21,8 @@ import psy.lob.saw.queues.UnsafeDirectByteBuffer;
  *
  */
 public class IpcPerfTest {
-	public static final int QUEUE_CAPACITY = 32 * 1024;
-	public static final int REPETITIONS = 500 * 1024 * 1024;
+	public static final int QUEUE_CAPACITY = Integer.getInteger("size", 32) * 1024;
+	public static final int REPETITIONS = Integer.getInteger("reps", 50) * 1000 * 1000;
 	public static final Integer TEST_VALUE = Integer.valueOf(777);
 	public static ByteBuffer syncArea;
 	public static void main(final String[] args) throws Exception {

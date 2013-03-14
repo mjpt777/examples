@@ -38,11 +38,11 @@ public final class P1C1OffHeapQueue implements Queue<Integer> {
 	private final int capacity;
 	private final int mask;
 	private final long arrayBase;
-	private static final int arrayElementScale = 2;
+	private static final int INT_ELEMENT_SCALE = 2;
 
 	public P1C1OffHeapQueue(final int capacity) {
 		this(allocateAlignedByteBuffer(
-		        4 * CACHE_LINE_SIZE + findNextPositivePowerOfTwo(capacity)<<arrayElementScale, CACHE_LINE_SIZE),
+		        4 * CACHE_LINE_SIZE + findNextPositivePowerOfTwo(capacity)<<INT_ELEMENT_SCALE, CACHE_LINE_SIZE),
 		        findNextPositivePowerOfTwo(capacity),(byte)(PRODUCER | CONSUMER));
 	}
 	/**
@@ -56,7 +56,7 @@ public final class P1C1OffHeapQueue implements Queue<Integer> {
 	public P1C1OffHeapQueue(final ByteBuffer buff, 
 			final int capacity, byte viewMask) {
 		this.capacity = findNextPositivePowerOfTwo(capacity);
-		buffy = alignedSlice(4 * CACHE_LINE_SIZE + this.capacity<<arrayElementScale, 
+		buffy = alignedSlice(4 * CACHE_LINE_SIZE + this.capacity<<INT_ELEMENT_SCALE, 
 									CACHE_LINE_SIZE, buff);
 
 		long alignedAddress = UnsafeDirectByteBuffer.getAddress(buffy);
@@ -105,7 +105,7 @@ public final class P1C1OffHeapQueue implements Queue<Integer> {
 		}
 
 		long offset = arrayBase
-		        + ((currentTail & mask) << arrayElementScale);
+		        + ((currentTail & mask) << INT_ELEMENT_SCALE);
 		UnsafeAccess.unsafe.putInt(offset, e.intValue());
 
 		setTail(currentTail + 1);
@@ -122,7 +122,7 @@ public final class P1C1OffHeapQueue implements Queue<Integer> {
 			}
 		}
 
-		final long offset = arrayBase + ((currentHead & mask) << arrayElementScale);
+		final long offset = arrayBase + ((currentHead & mask) << INT_ELEMENT_SCALE);
 		final int e = UnsafeAccess.unsafe.getInt(offset);
 //		UnsafeAccess.unsafe.putInt(null, offset, 0);
 		setHead(currentHead + 1);

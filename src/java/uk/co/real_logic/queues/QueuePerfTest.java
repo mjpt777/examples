@@ -16,6 +16,7 @@
 package uk.co.real_logic.queues;
 
 import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import psy.lob.saw.queues.P1C1OffHeapQueue;
 import psy.lob.saw.queues.P1C1Queue2CacheLinesHeapBuffer;
@@ -23,8 +24,8 @@ import psy.lob.saw.queues.P1C1Queue4CacheLinesHeapBuffer;
 import psy.lob.saw.queues.P1C1Queue4CacheLinesHeapBufferUnsafe;
 
 public class QueuePerfTest {
-	public static final int QUEUE_CAPACITY = 32 * 1024 * 1024;
-	public static final int REPETITIONS = 500 * 1000 * 1000;
+	public static final int QUEUE_CAPACITY = Integer.getInteger("size", 32) * 1024;
+	public static final int REPETITIONS = Integer.getInteger("reps", 50) * 1000 * 1000;
 	public static final Integer TEST_VALUE = Integer.valueOf(777);
 
 	public static void main(final String[] args) throws Exception {
@@ -40,17 +41,23 @@ public class QueuePerfTest {
 	private static Queue<Integer> createQueue(final String option) {
 		switch (Integer.parseInt(option)) {
 		case 0:
-			return new P1C1QueueOriginal<Integer>(QUEUE_CAPACITY);
+			return new ArrayBlockingQueue<Integer>(QUEUE_CAPACITY);
 		case 1:
-			return new P1C1Queue2CacheLinesHeapBuffer<Integer>(QUEUE_CAPACITY);
+			return new P1C1QueueOriginal3<Integer>(QUEUE_CAPACITY);
 		case 2:
-			return new P1C1Queue4CacheLinesHeapBuffer<Integer>(QUEUE_CAPACITY);
+			return new P1C1QueueOriginal3<Integer>(QUEUE_CAPACITY);
 		case 3:
+			return new P1C1QueueOriginal3<Integer>(QUEUE_CAPACITY);
+		case 4:
+			return new P1C1Queue2CacheLinesHeapBuffer<Integer>(QUEUE_CAPACITY);
+		case 5:
+			return new P1C1Queue4CacheLinesHeapBuffer<Integer>(QUEUE_CAPACITY);
+		case 6:
 			return new P1C1Queue4CacheLinesHeapBufferUnsafe<Integer>(
 			        QUEUE_CAPACITY);
-		case 4:
+		case 7:
 			return new P1C1OffHeapQueue(QUEUE_CAPACITY);
-		case 5:
+		case 8:
 			return new P1C1QueueOriginalPrimitive(QUEUE_CAPACITY);
 
 		default:
