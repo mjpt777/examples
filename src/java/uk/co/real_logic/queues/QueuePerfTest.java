@@ -43,9 +43,9 @@ public class QueuePerfTest {
 		case 0:
 			return new ArrayBlockingQueue<Integer>(QUEUE_CAPACITY);
 		case 1:
-			return new P1C1QueueOriginal3<Integer>(QUEUE_CAPACITY);
+			return new P1C1QueueOriginal1<Integer>(QUEUE_CAPACITY);
 		case 2:
-			return new P1C1QueueOriginal3<Integer>(QUEUE_CAPACITY);
+			return new P1C1QueueOriginal2<Integer>(QUEUE_CAPACITY);
 		case 3:
 			return new P1C1QueueOriginal3<Integer>(QUEUE_CAPACITY);
 		case 4:
