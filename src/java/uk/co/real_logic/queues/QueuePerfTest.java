@@ -24,12 +24,15 @@ import psy.lob.saw.queues.P1C1Queue4CacheLinesHeapBuffer;
 import psy.lob.saw.queues.P1C1Queue4CacheLinesHeapBufferUnsafe;
 
 public class QueuePerfTest {
-	public static final int QUEUE_CAPACITY = Integer.getInteger("size", 32) * 1024;
+	// 15 == 32* 1024
+	public static final int QUEUE_CAPACITY = 1 << Integer.getInteger("scale",
+	        15);
 	public static final int REPETITIONS = Integer.getInteger("reps", 50) * 1000 * 1000;
 	public static final Integer TEST_VALUE = Integer.valueOf(777);
 
 	public static void main(final String[] args) throws Exception {
-
+		System.out.println("capacity:" + QUEUE_CAPACITY + " reps:"
+		        + REPETITIONS);
 		final Queue<Integer> queue = createQueue(args[0]);
 
 		for (int i = 0; i < 20; i++) {
@@ -44,8 +47,16 @@ public class QueuePerfTest {
 			return new ArrayBlockingQueue<Integer>(QUEUE_CAPACITY);
 		case 1:
 			return new P1C1QueueOriginal1<Integer>(QUEUE_CAPACITY);
+		case 12:
+			return new P1C1QueueOriginal12<Integer>(QUEUE_CAPACITY);
 		case 2:
 			return new P1C1QueueOriginal2<Integer>(QUEUE_CAPACITY);
+		case 21:
+			return new P1C1QueueOriginal21<Integer>(QUEUE_CAPACITY);
+		case 22:
+			return new P1C1QueueOriginal22<Integer>(QUEUE_CAPACITY);
+		case 23:
+			return new P1C1QueueOriginal23<Integer>(QUEUE_CAPACITY);
 		case 3:
 			return new P1C1QueueOriginal3<Integer>(QUEUE_CAPACITY);
 		case 4:
@@ -75,10 +86,7 @@ public class QueuePerfTest {
 		int i = REPETITIONS;
 		do {
 			while (null == (result = queue.poll())) {
-//				Thread.yield();
-			}
-			if(result != (i & 31)){
-				throw new IllegalStateException();
+				Thread.yield();
 			}
 		} while (0 != --i);
 
@@ -101,8 +109,8 @@ public class QueuePerfTest {
 		public void run() {
 			int i = REPETITIONS;
 			do {
-				while (!queue.offer(i & 31)) {
-//					Thread.yield();
+				while (!queue.offer(TEST_VALUE)) {
+					Thread.yield();
 				}
 			} while (0 != --i);
 		}

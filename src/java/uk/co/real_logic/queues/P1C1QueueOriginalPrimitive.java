@@ -21,6 +21,18 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * <ul>
+ * <li>Lock free, observing single writer principal.
+ * <li>Replacing the long fields with AtomicLong and using lazySet instead of
+ * volatile assignment.
+ * <li>Using the power of 2 mask, forcing the capacity to next power of 2.
+ * <li>Adding head and tail cache fields. Avoiding redundant volatile reads.
+ * <li>Padding head/tail AtomicLong fields. Avoiding false sharing.
+ * <li>Padding head/tail cache fields. Avoiding false sharing.
+ * <li>Inline integer value rather than use an object.
+ * </ul>
+ */
 public final class P1C1QueueOriginalPrimitive implements Queue<Integer> {
 	private final int capacity;
 	private final int mask;

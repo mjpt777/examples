@@ -26,32 +26,17 @@ import java.util.concurrent.atomic.AtomicLong;
  * <li>Lock free, observing single writer principal.
  * <li>Replacing the long fields with AtomicLong and using lazySet instead of
  * volatile assignment.
- * <li>Using the power of 2 mask, forcing the capacity to next power of 2.
- * <li>Adding head and tail cache fields. Avoiding redundant volatile reads.
- * <li>Padding head/tail AtomicLong fields. Avoiding false sharing.
- * <li>Padding head/tail cache fields. Avoiding false sharing.
  * </ul>
  */
-public final class P1C1QueueOriginal3<E> implements Queue<E> {
-	private final int capacity;
-	private final int mask;
+public final class P1C1QueueOriginal12<E> implements Queue<E> {
 	private final E[] buffer;
 
-	private final AtomicLong tail = new PaddedAtomicLong(0);
-	private final AtomicLong head = new PaddedAtomicLong(0);
-
-	public static class PaddedLong {
-		public long value = 0, p1, p2, p3, p4, p5, p6;
-	}
-
-	private final PaddedLong tailCache = new PaddedLong();
-	private final PaddedLong headCache = new PaddedLong();
+	private final AtomicLong tail = new AtomicLong(0);
+	private final AtomicLong head = new AtomicLong(0);
 
 	@SuppressWarnings("unchecked")
-	public P1C1QueueOriginal3(final int capacity) {
-		this.capacity = findNextPositivePowerOfTwo(capacity);
-		mask = this.capacity - 1;
-		buffer = (E[]) new Object[this.capacity];
+	public P1C1QueueOriginal12(int capacity) {
+		buffer = (E[]) new Object[capacity];
 	}
 
 	public static int findNextPositivePowerOfTwo(final int value) {
@@ -72,15 +57,12 @@ public final class P1C1QueueOriginal3<E> implements Queue<E> {
 		}
 
 		final long currentTail = tail.get();
-		final long wrapPoint = currentTail - capacity;
-		if (headCache.value <= wrapPoint) {
-			headCache.value = head.get();
-			if (headCache.value <= wrapPoint) {
-				return false;
-			}
+		final long wrapPoint = currentTail - buffer.length;
+		if (head.get() <= wrapPoint) {
+			return false;
 		}
 
-		buffer[(int) currentTail & mask] = e;
+		buffer[(int) currentTail % buffer.length] = e;
 		tail.lazySet(currentTail + 1);
 
 		return true;
@@ -88,14 +70,11 @@ public final class P1C1QueueOriginal3<E> implements Queue<E> {
 
 	public E poll() {
 		final long currentHead = head.get();
-		if (currentHead >= tailCache.value) {
-			tailCache.value = tail.get();
-			if (currentHead >= tailCache.value) {
-				return null;
-			}
+		if (currentHead >= tail.get()) {
+			return null;
 		}
 
-		final int index = (int) currentHead & mask;
+		final int index = (int) currentHead % buffer.length;
 		final E e = buffer[index];
 		buffer[index] = null;
 		head.lazySet(currentHead + 1);
@@ -122,7 +101,7 @@ public final class P1C1QueueOriginal3<E> implements Queue<E> {
 	}
 
 	public E peek() {
-		return buffer[(int) head.get() & mask];
+		return buffer[(int) head.get() % buffer.length];
 	}
 
 	public int size() {
@@ -139,7 +118,7 @@ public final class P1C1QueueOriginal3<E> implements Queue<E> {
 		}
 
 		for (long i = head.get(), limit = tail.get(); i < limit; i++) {
-			final E e = buffer[(int) i & mask];
+			final E e = buffer[(int) i % buffer.length];
 			if (o.equals(e)) {
 				return true;
 			}

@@ -21,6 +21,7 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
 
+
 /**
  * <ul>
  * <li>Lock free, observing single writer principal.
@@ -28,27 +29,21 @@ import java.util.concurrent.atomic.AtomicLong;
  * volatile assignment.
  * <li>Using the power of 2 mask, forcing the capacity to next power of 2.
  * <li>Adding head and tail cache fields. Avoiding redundant volatile reads.
- * <li>Padding head/tail AtomicLong fields. Avoiding false sharing.
- * <li>Padding head/tail cache fields. Avoiding false sharing.
  * </ul>
  */
-public final class P1C1QueueOriginal3<E> implements Queue<E> {
+public final class P1C1QueueOriginal22<E> implements Queue<E> {
 	private final int capacity;
 	private final int mask;
 	private final E[] buffer;
 
-	private final AtomicLong tail = new PaddedAtomicLong(0);
-	private final AtomicLong head = new PaddedAtomicLong(0);
+	private final AtomicLong tail = new AtomicLong(0);
+	private final AtomicLong head = new AtomicLong(0);
 
-	public static class PaddedLong {
-		public long value = 0, p1, p2, p3, p4, p5, p6;
-	}
-
-	private final PaddedLong tailCache = new PaddedLong();
-	private final PaddedLong headCache = new PaddedLong();
+	private long tailCache = 0;
+	private long headCache = 0;
 
 	@SuppressWarnings("unchecked")
-	public P1C1QueueOriginal3(final int capacity) {
+	public P1C1QueueOriginal22(final int capacity) {
 		this.capacity = findNextPositivePowerOfTwo(capacity);
 		mask = this.capacity - 1;
 		buffer = (E[]) new Object[this.capacity];
@@ -73,9 +68,9 @@ public final class P1C1QueueOriginal3<E> implements Queue<E> {
 
 		final long currentTail = tail.get();
 		final long wrapPoint = currentTail - capacity;
-		if (headCache.value <= wrapPoint) {
-			headCache.value = head.get();
-			if (headCache.value <= wrapPoint) {
+		if (headCache <= wrapPoint) {
+			headCache = head.get();
+			if (headCache <= wrapPoint) {
 				return false;
 			}
 		}
@@ -88,9 +83,9 @@ public final class P1C1QueueOriginal3<E> implements Queue<E> {
 
 	public E poll() {
 		final long currentHead = head.get();
-		if (currentHead >= tailCache.value) {
-			tailCache.value = tail.get();
-			if (currentHead >= tailCache.value) {
+		if (currentHead >= tailCache) {
+			tailCache = tail.get();
+			if (currentHead >= tailCache) {
 				return null;
 			}
 		}

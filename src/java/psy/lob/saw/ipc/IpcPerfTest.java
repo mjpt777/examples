@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import java.nio.channels.IllegalSelectorException;
 import java.util.Queue;
 
 import psy.lob.saw.queues.P1C1OffHeapQueue;
@@ -21,7 +20,7 @@ import psy.lob.saw.queues.UnsafeDirectByteBuffer;
  *
  */
 public class IpcPerfTest {
-	public static final int QUEUE_CAPACITY = Integer.getInteger("size", 32) * 1024;
+	public static final int QUEUE_CAPACITY = 1 << Integer.getInteger("scale", 16) ;
 	public static final int REPETITIONS = Integer.getInteger("reps", 50) * 1000 * 1000;
 	public static final Integer TEST_VALUE = Integer.valueOf(777);
 	public static ByteBuffer syncArea;
@@ -105,7 +104,7 @@ public class IpcPerfTest {
 		final long start = System.nanoTime();
 		int i = REPETITIONS;
 		do {
-			while (!queue.offer(i & 31)) {
+			while (!queue.offer(TEST_VALUE)) {
 //				Thread.yield();
 			}
 		} while (0 != --i);
@@ -127,11 +126,7 @@ public class IpcPerfTest {
 		int i = REPETITIONS;
 		do {
 			while (null == (result = queue.poll())) {
-
 //				Thread.yield();
-			}
-			if(result != (i & 31)){
-				throw new IllegalStateException();
 			}
 		} while (0 != --i);
 		while(!UnsafeAccess.unsafe.compareAndSwapInt(null, syncAddress, 3*runNumber, 3*runNumber+1))
