@@ -39,13 +39,13 @@ public class StructuredArrayTest
     @Test
     public void shouldConstructArrayOfGivenLengthAndInitValues()
     {
-        final Class[] initArgTypes = {long.class, long.class};
+        final Class[] initArgTypes = { long.class, long.class };
         final long expectedIndex = 4L;
         final long expectedValue = 777L;
         final long length = 7;
 
-        final StructuredArray<MockStructure> structuredArray =
-            StructuredArray.newInstance(length, MockStructure.class, initArgTypes, expectedIndex, expectedValue);
+        final StructuredArray<MockStructure> structuredArray = StructuredArray.newInstance(
+            length, MockStructure.class, initArgTypes, expectedIndex, expectedValue);
 
         assertCorrectInitialisation(expectedIndex, expectedValue, length, structuredArray);
     }
@@ -65,14 +65,14 @@ public class StructuredArrayTest
     @Test
     public void shouldConstructArrayElementsViaFactoryWithInitValues()
     {
-        final Class[] initArgTypes = {long.class, long.class};
+        final Class[] initArgTypes = { long.class, long.class };
         final long expectedIndex = 4L;
         final long expectedValue = 777L;
         final long length = 7;
         final ComponentFactory<MockStructure> componentFactory = new InitArgsMockComponentFactory();
 
-        final StructuredArray<MockStructure> structuredArray =
-            StructuredArray.newInstance(length, MockStructure.class, componentFactory, initArgTypes, expectedIndex, expectedValue);
+        final StructuredArray<MockStructure> structuredArray = StructuredArray.newInstance(
+            length, MockStructure.class, componentFactory, initArgTypes, expectedIndex, expectedValue);
 
         assertCorrectInitialisation(expectedIndex, expectedValue, length, structuredArray);
     }
@@ -203,14 +203,15 @@ public class StructuredArrayTest
     // Test support below
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    private void assertCorrectInitialisation(final long expectedIndex, final long expectedValue, final long length,
-                                             final StructuredArray<MockStructure> structuredArray)
+    private void assertCorrectInitialisation(
+        final long expectedIndex, final long expectedValue, final long length,
+        final StructuredArray<MockStructure> structuredArray)
     {
         assertThat(valueOf(structuredArray.getLength()), is(valueOf(length)));
         assertTrue(structuredArray.getComponentClass() == MockStructure.class);
         for (long i = 0; i < length; i++)
         {
-            MockStructure mockStructure = structuredArray.get(i);
+            final MockStructure mockStructure = structuredArray.get(i);
             assertThat(valueOf(mockStructure.getIndex()), is(valueOf(expectedIndex)));
             assertThat(valueOf(mockStructure.getTestValue()), is(valueOf(expectedValue)));
         }
@@ -263,8 +264,15 @@ public class StructuredArrayTest
 
         public boolean equals(final Object o)
         {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+            {
+                return true;
+            }
+
+            if (o == null || getClass() != o.getClass())
+            {
+                return false;
+            }
 
             final MockStructure that = (MockStructure)o;
 
@@ -275,15 +283,16 @@ public class StructuredArrayTest
         {
             int result = (int)(index ^ (index >>> 32));
             result = 31 * result + (int)(testValue ^ (testValue >>> 32));
+
             return result;
         }
 
         public String toString()
         {
             return "MockStructure{" +
-            "index=" + index +
-            ", testValue=" + testValue +
-            '}';
+                "index=" + index +
+                ", testValue=" + testValue +
+                '}';
         }
     }
 
@@ -306,6 +315,7 @@ public class StructuredArrayTest
         {
             final Long firstArg = (Long)initArgs[0];
             final Long secondArg = (Long)initArgs[1];
+
             return new MockStructure(firstArg.longValue(), secondArg.longValue());
         }
     }

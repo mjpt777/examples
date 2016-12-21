@@ -78,7 +78,7 @@ public final class OneToOneConcurrentArrayQueue2<E>
         final long currentHead = head.get();
         if (currentHead >= tail.get())
         {
-             return null;
+            return null;
         }
 
         final int index = (int)currentHead & mask;
